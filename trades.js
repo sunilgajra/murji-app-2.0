@@ -928,6 +928,13 @@ function editTrade(id) {
         document.getElementById('tr-source-loc').value = t.source_location;
         checkSourceStock();
     }
+    if (document.getElementById('tr-delivery-mode')) {
+        document.getElementById('tr-delivery-mode').value = t.delivery_mode || 'ex_yard';
+    }
+    if (document.getElementById('tr-delivery-dest')) {
+        document.getElementById('tr-delivery-dest').value = t.delivery_dest || '';
+    }
+    toggleDeliveryDest();
     if (t.mode === 'import') {
         document.getElementById('tr-is-hs').checked = !!t.is_hs;
         document.getElementById('tr-inv-no-intl').value = t.inv_no_intl || '';
@@ -1068,7 +1075,9 @@ function addTrade() {
         is_hs: document.getElementById('tr-is-hs').checked,
         hs_seller: document.getElementById('tr-hs-seller').value,
         location: storageLoc,
-        source_location: document.getElementById('tr-source-loc') ? document.getElementById('tr-source-loc').value : null
+        source_location: document.getElementById('tr-source-loc') ? document.getElementById('tr-source-loc').value : null,
+        delivery_mode: document.getElementById('tr-delivery-mode') ? document.getElementById('tr-delivery-mode').value : 'ex_yard',
+        delivery_dest: document.getElementById('tr-delivery-dest') ? document.getElementById('tr-delivery-dest').value : ''
     };
 
     if (type === 'Sell' && mode === 'hs_sale') trade.link_purchase_id = document.getElementById('tr-link-purchase').value;
@@ -2569,6 +2578,12 @@ function toggleTradeModeField() {
     toggleTradeDetailFields();
 }
 
+function toggleDeliveryDest() {
+    var mode = document.getElementById('tr-delivery-mode') ? document.getElementById('tr-delivery-mode').value : '';
+    var destGrp = document.getElementById('tr-delivery-dest-group');
+    if (destGrp) destGrp.style.display = (mode === 'door') ? 'block' : 'none';
+}
+
 function toggleTradeDetailFields() {
     var type = document.getElementById('tr-type').value;
     var mode = document.getElementById('tr-mode').value;
@@ -2577,12 +2592,17 @@ function toggleTradeDetailFields() {
     var linkGrp = document.getElementById('tr-link-group');
     var srcGrp = document.getElementById('tr-source-loc-group');
     var destGrp = document.getElementById('tr-dest-loc-group');
+    var delivModeGrp = document.getElementById('tr-delivery-mode-group');
 
     // Source (FROM) only visible for Sell-Local and Move
     if (srcGrp) srcGrp.style.display = (type === 'Move' || (type === 'Sell' && mode === 'local')) ? 'block' : 'none';
     if (srcGrp && srcGrp.style.display === 'block') populateSourceLocations();
 
-    // Destination (TO / Storage) only visible for Buy-Local and Move — NOT for Sell
+    // Delivery Mode (Ex-Yard / Door) — only for Sell-Local
+    if (delivModeGrp) delivModeGrp.style.display = (type === 'Sell' && mode === 'local') ? 'block' : 'none';
+    toggleDeliveryDest();
+
+    // Destination (TO / Storage) only visible for Buy and Move — NOT for Sell
     if (destGrp) destGrp.style.display = (type === 'Buy' || type === 'Move') ? 'block' : 'none';
 
     if (type === 'Move') {
@@ -2929,7 +2949,7 @@ function generateLandedCostReport(tradeId) {
         addBuyerPaymentRow, removeBuyerPaymentRow, updateBuyerPaymentSummary, getBuyerPayments, clearBuyerData,
         loadDealDetails, populateSourceLocations, checkSourceStock, syncWeightToQty,
         openHssModal, closeHssModal, renderHssPreviews, downloadAllHssDocs,
-        populateTradeParties, syncCustomsDutyToExpenses, calcTradeTotals, toggleTradeModeField, toggleTradeDetailFields,
+        populateTradeParties, syncCustomsDutyToExpenses, calcTradeTotals, toggleTradeModeField, toggleTradeDetailFields, toggleDeliveryDest,
         populatePurchaseLinks, loadPurchaseDetails, handleCurrencyChange, calcImportTotal
     };
     for (const key in exports) {

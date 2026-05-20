@@ -366,6 +366,19 @@
                     </div>
                 </div>
             </div>
+            <!-- Delivery Mode — for Sell/Local only -->
+            <div class="form-group" id="tr-delivery-mode-group" style="display:none;">
+                <label>Delivery Mode</label>
+                <select id="tr-delivery-mode" onchange="toggleDeliveryDest()">
+                    <option value="ex_yard">🏭 Ex-Yard (Buyer Pickup)</option>
+                    <option value="door">🚛 Door Delivery (We Send)</option>
+                </select>
+            </div>
+            <!-- Delivery Destination — only shown for Door Delivery -->
+            <div class="form-group" id="tr-delivery-dest-group" style="display:none;">
+                <label>Delivery Destination</label>
+                <input id="tr-delivery-dest" placeholder="Buyer's location / address">
+            </div>
             <div class="form-group" id="tr-dest-loc-group">
                 <label>Storage Location (To / Yard Assign)</label>
                 <select id="tr-storage-loc">
