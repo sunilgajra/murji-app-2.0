@@ -354,7 +354,7 @@
 
       <!-- Local Specific -->
         <div class="tr-local-fields form-group full" style="display:none; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px;">
-        <div class="form-group"><label>Unit Price (&#x20B9;)</label><input id="tr-price-local" type="number" placeholder="0.00" step="0.01" oninput="calcTradeTotals()"></div>
+        <div class="form-group"><label>Unit Price (&#x20B9;)</label><input id="tr-price-local" type="number" placeholder="0.00" step="0.01" oninput="syncPriceLocalToTaxRate(); calcTradeBreakdown(); calcTradeTotals();"></div>
         <div class="form-group" id="tr-source-loc-group">
                 <label>Source Location (From)</label>
                 <div style="display:flex; gap:5px; align-items:center;">
@@ -391,6 +391,48 @@
             <div class="form-group"><label>Invoice No</label><input id="tr-inv-no"></div>
             <div class="form-group"><label>GST No</label><input id="tr-gst"></div>
             <div class="form-group"><label>Vehicle No</label><input id="tr-veh" placeholder="MH 12 ..."></div>
+        </div>
+
+        <!-- Trade Pricing Breakdown — shown only for local trades -->
+        <div class="tr-local-fields form-group full" id="tr-local-pricing" style="display:none; margin-top:16px; border-top:1px solid var(--border); padding-top:16px; grid-column: span 2;">
+          <div style="color:var(--gold2); font-size:13px; font-weight:600; margin-bottom:12px;">📊 Pricing Breakdown</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:14px; margin-bottom:12px;">
+            <div class="form-group">
+              <label>Deal Rate (₹/KG) <span style="color:var(--muted); font-size:10px;">— Total incl. all</span></label>
+              <input id="tr-deal-rate" type="number" placeholder="121.00" step="0.01" oninput="calcTradeBreakdown(); calcTradeTotals();">
+            </div>
+            <div class="form-group">
+              <label>KG/ltr Rate (₹/KG) <span style="color:var(--muted); font-size:10px;">— Taxable rate</span></label>
+              <input id="tr-tax-rate" type="number" placeholder="42.00" step="0.01" oninput="syncTaxRateToPriceLocal(); calcTradeBreakdown(); calcTradeTotals();">
+            </div>
+            <div class="form-group">
+              <label>Tax % (GST)</label>
+              <input id="tr-tax-pct" type="number" placeholder="18" step="0.01" value="18" oninput="calcTradeBreakdown(); calcTradeTotals();">
+            </div>
+          </div>
+          <!-- Calculated Results -->
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-top:10px;">
+            <div style="background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px; text-align:center;">
+              <div style="font-size:10px; color:var(--muted); margin-bottom:4px;">TAXABLE AMT</div>
+              <div id="tr-calc-taxable" style="font-size:15px; font-weight:700; color:var(--text);">₹ 0</div>
+            </div>
+            <div style="background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px; text-align:center;">
+              <div style="font-size:10px; color:var(--muted); margin-bottom:4px;">TAX AMT</div>
+              <div id="tr-calc-tax" style="font-size:15px; font-weight:700; color:var(--gold2);">₹ 0</div>
+            </div>
+            <div style="background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px; text-align:center;">
+              <div style="font-size:10px; color:var(--muted); margin-bottom:4px;">TOTAL W/ TAX (T.AMT)</div>
+              <div id="tr-calc-tamt" style="font-size:15px; font-weight:700; color:var(--teal);">₹ 0</div>
+            </div>
+            <div style="background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px; text-align:center;">
+              <div style="font-size:10px; color:var(--muted); margin-bottom:4px;">DEAL AMT</div>
+              <div id="tr-calc-deal" style="font-size:15px; font-weight:700; color:var(--green);">₹ 0</div>
+            </div>
+            <div style="background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px; text-align:center; border-color:var(--gold2);">
+              <div style="font-size:10px; color:var(--gold2); margin-bottom:4px; font-weight:600;">Y CHARGES</div>
+              <div id="tr-calc-ychgs" style="font-size:15px; font-weight:700; color:var(--gold2);">₹ 0</div>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -461,7 +503,7 @@
     </select>
   </div>
   <div class="section-title">Trade History</div>
-  <div class="table-wrap scroll-x"><table>        <thead><tr><th>Date</th><th>Type</th><th>Product</th><th>Counterparty</th><th>Quantity</th><th>Price/Unit</th><th>Total (&#x20B9;)</th><th>Actions</th></tr></thead>
+  <div class="table-wrap scroll-x"><table>        <thead><tr><th>Date</th><th>Type</th><th>Product</th><th>Counterparty</th><th>Quantity</th><th>Price/Unit</th><th>Total (&#x20B9;)</th><th>Deal Rate</th><th>Y Charges</th><th>Actions</th></tr></thead>
 <tbody id="tradesTable"></tbody></table></div>
 </div></div>
 

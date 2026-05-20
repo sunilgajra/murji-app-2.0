@@ -56,9 +56,12 @@ function renderTradesTable() {
             var blBadge = activeBlNo ? ' <span class="badge" style="font-size:9px; padding:1px 4px; background:var(--surface2); color:var(--text); border:1px solid var(--border);" title="BL No: ' + activeBlNo + '">BL: ' + activeBlNo + '</span>' : '';
             var docBadge = hasDocs ? ' <span title="Documents attached" style="color:var(--gold2)">&#x1F4CE;</span>' : '';
 
+            var dealRateVal = (t.mode === 'local' && t.deal_rate) ? '₹ ' + fmt(t.deal_rate) + ' / KG' : '—';
+            var yChargesVal = (t.mode === 'local' && t.y_charges !== undefined) ? '₹ ' + fmt(t.y_charges) : '—';
+
             const moveBtn = t.mode === 'import' ? `<button class="btn btn-blue btn-sm" onclick="openMoveToYardModal(${t.id})" title="Move to Yard">&#x1F69A;</button>` : '';
 
-            return '<tr><td class="mono">' + t.date + '</td><td><span class="badge ' + (t.type === 'Buy' ? 'badge-blue' : 'badge-green') + '">' + t.type + '</span>' + modeInfo + importBadge + blBadge + boeBadge + docBadge + '</td><td>' + escH(t.product) + '</td><td>' + escH(t.party) + '</td><td class="mono">' + fmtN(displayQty) + unitSuffix + '</td><td class="mono">' + fmt(t.price) + '</td><td class="mono">' + fmt(displayQty * t.price) + '</td><td><div style="display:flex;gap:4px"><button class="btn btn-primary btn-sm" onclick="editTrade(' + t.id + ')" title="Edit">&#x270F;</button><button class="btn btn-ghost btn-sm" onclick="printTradeReceipt(' + t.id + ')" title="Print">&#x1F5B6;</button>' + (t.mode === 'import' ? '<button class="btn btn-teal btn-sm" onclick="generateLandedCostReport(' + t.id + ')" title="Landed Cost Report">&#x1F4CA;</button>' : '') + moveBtn + '<button class="btn btn-danger btn-sm" onclick="deleteItem(\'trades\',' + t.id + ')" title="Delete">&#x2715;</button></div></td></tr>';
+            return '<tr><td class="mono">' + t.date + '</td><td><span class="badge ' + (t.type === 'Buy' ? 'badge-blue' : 'badge-green') + '">' + t.type + '</span>' + modeInfo + importBadge + blBadge + boeBadge + docBadge + '</td><td>' + escH(t.product) + '</td><td>' + escH(t.party) + '</td><td class="mono">' + fmtN(displayQty) + unitSuffix + '</td><td class="mono">' + fmt(t.price) + '</td><td class="mono">' + fmt(displayQty * t.price) + '</td><td class="mono">' + dealRateVal + '</td><td class="mono">' + yChargesVal + '</td><td><div style="display:flex;gap:4px"><button class="btn btn-primary btn-sm" onclick="editTrade(' + t.id + ')" title="Edit">&#x270F;</button><button class="btn btn-ghost btn-sm" onclick="printTradeReceipt(' + t.id + ')" title="Print">&#x1F5B6;</button>' + (t.mode === 'import' ? '<button class="btn btn-teal btn-sm" onclick="generateLandedCostReport(' + t.id + ')" title="Landed Cost Report">&#x1F4CA;</button>' : '') + moveBtn + '<button class="btn btn-danger btn-sm" onclick="deleteItem(\'trades\',' + t.id + ')" title="Delete">&#x2715;</button></div></td></tr>';
         }).join('');
 }
 
@@ -996,6 +999,15 @@ function editTrade(id) {
     } else if (t.mode === 'hs_sale') {
         document.getElementById('tr-link-purchase').value = t.link_purchase_id || '';
         document.getElementById('tr-imp-rate').value = t.price;
+    } else if (t.mode === 'local') {
+        document.getElementById('tr-price-local').value = t.price || '';
+        document.getElementById('tr-inv-no').value = t.inv_no || '';
+        document.getElementById('tr-gst').value = t.gst || '';
+        document.getElementById('tr-veh').value = t.veh || '';
+        document.getElementById('tr-deal-rate').value = t.deal_rate || '';
+        document.getElementById('tr-tax-rate').value = t.tax_rate || '';
+        document.getElementById('tr-tax-pct').value = t.tax_pct !== undefined ? t.tax_pct : 18;
+        calcTradeBreakdown();
     }
 
     // Load Expenses
@@ -1108,10 +1120,24 @@ function addTrade() {
         location: storageLoc,
         source_location: document.getElementById('tr-source-loc') ? document.getElementById('tr-source-loc').value : null,
         delivery_mode: document.getElementById('tr-delivery-mode') ? document.getElementById('tr-delivery-mode').value : 'ex_yard',
-        delivery_dest: document.getElementById('tr-delivery-dest') ? document.getElementById('tr-delivery-dest').value : ''
+        delivery_dest: document.getElementById('tr-delivery-dest') ? document.getElementById('tr-delivery-dest').value : '',
+        deal_rate: parseFloat(document.getElementById('tr-deal-rate') ? document.getElementById('tr-deal-rate').value : 0) || 0,
+        tax_rate: parseFloat(document.getElementById('tr-tax-rate') ? document.getElementById('tr-tax-rate').value : 0) || 0,
+        tax_pct: parseFloat(document.getElementById('tr-tax-pct') ? document.getElementById('tr-tax-pct').value : 18) || 18,
+        taxable_amt: getTradeQtyKG() * (parseFloat(document.getElementById('tr-tax-rate') ? document.getElementById('tr-tax-rate').value : 0) || 0),
+        deal_amt: getTradeQtyKG() * (parseFloat(document.getElementById('tr-deal-rate') ? document.getElementById('tr-deal-rate').value : 0) || 0),
+        y_charges: (getTradeQtyKG() * (parseFloat(document.getElementById('tr-deal-rate') ? document.getElementById('tr-deal-rate').value : 0) || 0)) -
+                   (getTradeQtyKG() * (parseFloat(document.getElementById('tr-tax-rate') ? document.getElementById('tr-tax-rate').value : 0) || 0) *
+                   (1 + (parseFloat(document.getElementById('tr-tax-pct') ? document.getElementById('tr-tax-pct').value : 18) || 18) / 100))
     };
 
     if (type === 'Sell' && mode === 'hs_sale') trade.link_purchase_id = document.getElementById('tr-link-purchase').value;
+
+    if (mode === 'local') {
+        trade.inv_no = document.getElementById('tr-inv-no').value;
+        trade.gst = document.getElementById('tr-gst').value;
+        trade.veh = document.getElementById('tr-veh').value;
+    }
 
     if (type === 'Buy') {
         if (mode === 'import') {
@@ -1163,9 +1189,11 @@ function addTrade() {
         document.getElementById('btn-scan-ai').style.display = 'none';
         var btn = document.querySelector('button[onclick="addTrade()"]');
         if (btn) { btn.innerHTML = '&#x1F4B1; Record Trade'; btn.classList.remove('btn-blue'); }
-        ['tr-party', 'tr-vol', 'tr-price-local', 'tr-import-no', 'tr-bl-no', 'tr-vessel', 'tr-port-load', 'tr-port-dis', 'tr-ex-rate', 'tr-inv-no', 'tr-gst', 'tr-veh', 'tr-imp-rate', 'tr-total-for', 'tr-total-inr-shared', 'tr-agent', 'tr-gross-weight', 'tr-net-weight', 'tr-hs-code', 'tr-boe-no', 'tr-boe-date', 'tr-duty-amt', 'tr-boe-fine', 'tr-boe-penalty', 'tr-boe-interest', 'tr-containers', 'tr-storage-loc'].forEach(function (id) {
+        ['tr-party', 'tr-vol', 'tr-price-local', 'tr-import-no', 'tr-bl-no', 'tr-vessel', 'tr-port-load', 'tr-port-dis', 'tr-ex-rate', 'tr-inv-no', 'tr-gst', 'tr-veh', 'tr-imp-rate', 'tr-total-for', 'tr-total-inr-shared', 'tr-agent', 'tr-gross-weight', 'tr-net-weight', 'tr-hs-code', 'tr-boe-no', 'tr-boe-date', 'tr-duty-amt', 'tr-boe-fine', 'tr-boe-penalty', 'tr-boe-interest', 'tr-containers', 'tr-storage-loc', 'tr-deal-rate', 'tr-tax-rate'].forEach(function (id) {
             var el = document.getElementById(id); if (el) el.value = '';
         });
+        if (document.getElementById('tr-tax-pct')) document.getElementById('tr-tax-pct').value = '18';
+        calcTradeBreakdown();
         document.getElementById('tr-party-select').value = '';
         document.getElementById('tr-is-hs').checked = false;
         document.getElementById('tr-sale-deal').value = '';
@@ -1193,9 +1221,11 @@ function resetTradeForm() {
     document.getElementById('btn-scan-ai').style.display = 'none';
     var btn = document.querySelector('button[onclick="addTrade()"]');
     if (btn) { btn.innerHTML = '&#x1F4B1; Record Trade'; btn.classList.remove('btn-blue'); }
-    ['tr-party', 'tr-vol', 'tr-price-local', 'tr-import-no', 'tr-bl-no', 'tr-vessel', 'tr-port-load', 'tr-port-dis', 'tr-ex-rate', 'tr-inv-no', 'tr-gst', 'tr-veh', 'tr-imp-rate', 'tr-total-for', 'tr-total-inr-shared', 'tr-agent', 'tr-gross-weight', 'tr-net-weight', 'tr-hs-code', 'tr-boe-no', 'tr-boe-date', 'tr-duty-amt', 'tr-boe-fine', 'tr-boe-penalty', 'tr-boe-interest', 'tr-containers', 'tr-storage-loc'].forEach(function (id) {
+    ['tr-party', 'tr-vol', 'tr-price-local', 'tr-import-no', 'tr-bl-no', 'tr-vessel', 'tr-port-load', 'tr-port-dis', 'tr-ex-rate', 'tr-inv-no', 'tr-gst', 'tr-veh', 'tr-imp-rate', 'tr-total-for', 'tr-total-inr-shared', 'tr-agent', 'tr-gross-weight', 'tr-net-weight', 'tr-hs-code', 'tr-boe-no', 'tr-boe-date', 'tr-duty-amt', 'tr-boe-fine', 'tr-boe-penalty', 'tr-boe-interest', 'tr-containers', 'tr-storage-loc', 'tr-deal-rate', 'tr-tax-rate'].forEach(function (id) {
         var el = document.getElementById(id); if (el) el.value = '';
     });
+    if (document.getElementById('tr-tax-pct')) document.getElementById('tr-tax-pct').value = '18';
+    calcTradeBreakdown();
     document.getElementById('tr-party-select').value = '';
     document.getElementById('tr-is-hs').checked = false;
     document.getElementById('tr-sale-deal').value = '';
@@ -2588,6 +2618,47 @@ function calcTradeTotals() {
         if (landedLEl) landedLEl.value = '';
         if (landedKgEl) landedKgEl.value = '';
     }
+    calcTradeBreakdown();
+}
+
+function getTradeQtyKG() {
+    var rawQty = parseFloat(document.getElementById('tr-vol').value) || 0;
+    var den = parseFloat(document.getElementById('tr-density').value) || 0.85;
+    var unit = document.getElementById('tr-unit').value;
+
+    if (unit === 'KG') return rawQty;
+    if (unit === 'MTON') return rawQty * 1000;
+    return rawQty * den;
+}
+
+function calcTradeBreakdown() {
+    var qtyKG = getTradeQtyKG();
+    var dealRate = parseFloat(document.getElementById('tr-deal-rate') ? document.getElementById('tr-deal-rate').value : 0) || 0;
+    var taxRate = parseFloat(document.getElementById('tr-tax-rate') ? document.getElementById('tr-tax-rate').value : 0) || 0;
+    var taxPct = parseFloat(document.getElementById('tr-tax-pct') ? document.getElementById('tr-tax-pct').value : 18) || 0;
+
+    var taxableAmt = qtyKG * taxRate;
+    var taxAmt = taxableAmt * taxPct / 100;
+    var tAmt = taxableAmt + taxAmt;
+    var dealAmt = qtyKG * dealRate;
+    var yChgs = dealAmt - tAmt;
+
+    var set = function(id, v) { var el = document.getElementById(id); if (el) el.textContent = '₹ ' + fmt(v); };
+    set('tr-calc-taxable', taxableAmt);
+    set('tr-calc-tax', taxAmt);
+    set('tr-calc-tamt', tAmt);
+    set('tr-calc-deal', dealAmt);
+    set('tr-calc-ychgs', yChgs);
+}
+
+function syncTaxRateToPriceLocal() {
+    const taxRateVal = document.getElementById('tr-tax-rate').value;
+    document.getElementById('tr-price-local').value = taxRateVal;
+}
+
+function syncPriceLocalToTaxRate() {
+    const priceVal = document.getElementById('tr-price-local').value;
+    document.getElementById('tr-tax-rate').value = priceVal;
 }
 
 function toggleTradeModeField() {
@@ -2981,7 +3052,8 @@ function generateLandedCostReport(tradeId) {
         loadDealDetails, populateSourceLocations, checkSourceStock, syncWeightToQty,
         openHssModal, closeHssModal, renderHssPreviews, downloadAllHssDocs,
         populateTradeParties, syncCustomsDutyToExpenses, calcTradeTotals, toggleTradeModeField, toggleTradeDetailFields, toggleDeliveryDest,
-        populatePurchaseLinks, loadPurchaseDetails, handleCurrencyChange, calcImportTotal
+        populatePurchaseLinks, loadPurchaseDetails, handleCurrencyChange, calcImportTotal,
+        getTradeQtyKG, calcTradeBreakdown, syncTaxRateToPriceLocal, syncPriceLocalToTaxRate
     };
     for (const key in exports) {
         if (typeof exports[key] === 'function') {
