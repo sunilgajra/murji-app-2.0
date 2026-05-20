@@ -2914,7 +2914,7 @@ function printTradeReceipt(tradeId) {
                     table {
                         width: 100%;
                         border-collapse: collapse;
-                        table-layout: fixed;
+                        table-layout: auto;
                         font-size: 10px;
                         margin-top: 10px;
                         -webkit-print-color-adjust: exact;
@@ -2924,7 +2924,7 @@ function printTradeReceipt(tradeId) {
                         border: 1px solid #000;
                         padding: 6px 4px;
                         vertical-align: middle;
-                        word-wrap: break-word;
+                        white-space: nowrap;
                     }
                     th {
                         background: #f2f2f2;
@@ -2941,20 +2941,6 @@ function printTradeReceipt(tradeId) {
                     ${escH(t.party)}
                 </div>
                 <table>
-                    <colgroup>
-                        <col style="width: 7.5%;">
-                        <col style="width: 9%;">
-                        <col style="width: 7.5%;">
-                        <col style="width: 8.5%;">
-                        <col style="width: 5.5%;">
-                        <col style="width: 9.5%;">
-                        <col style="width: 7.5%;">
-                        <col style="width: 9.5%;">
-                        <col style="width: 5%;">
-                        <col style="width: 10.5%;">
-                        <col style="width: 10.5%;">
-                        <col style="width: 9.5%;">
-                    </colgroup>
                     <thead>
                         <tr>
                             <th style="text-align: left;">DATE</th>

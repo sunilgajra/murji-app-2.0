@@ -437,7 +437,7 @@ function generateMasterStatement() {
                 table {
                     width: 100%;
                     border-collapse: collapse;
-                    table-layout: fixed;
+                    table-layout: auto;
                     font-size: 10px;
                     margin-top: 15px;
                     -webkit-print-color-adjust: exact;
@@ -447,7 +447,7 @@ function generateMasterStatement() {
                     border: 1px solid #000;
                     padding: 6px 4px;
                     vertical-align: middle;
-                    word-wrap: break-word;
+                    white-space: nowrap;
                 }
                 th {
                     background: #f2f2f2;
@@ -469,16 +469,6 @@ function generateMasterStatement() {
                 </div>
             </div>
             <table>
-                <colgroup>
-                    <col style="width: 10%;">
-                    <col style="width: 12%;">
-                    <col style="width: 12%;">
-                    <col style="width: 14%;">
-                    <col style="width: 12%;">
-                    <col style="width: 8%;">
-                    <col style="width: 16%;">
-                    <col style="width: 16%;">
-                </colgroup>
                 <thead>
                     <tr>
                         <th style="text-align: left;">DATE</th>
