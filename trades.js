@@ -2841,6 +2841,16 @@ function printTradeReceipt(tradeId) {
     var dealAmt = qtyKG * dealRate;
     var yChgs = dealAmt - tAmt;
 
+    // Calculate Payment and Balance
+    var totalPaid = 0;
+    if (t.type === 'Buy') {
+        totalPaid = (t.payments || []).reduce(function(sum, p) { return sum + (parseFloat(p.amount_inr) || 0); }, 0);
+    } else {
+        totalPaid = (t.buyer_payments || []).reduce(function(sum, p) { return sum + (parseFloat(p.amount) || 0); }, 0);
+    }
+    var balance = dealAmt - totalPaid;
+    var highlightLabel = t.type === 'Buy' ? 'Payable' : 'Receivable';
+
     var formatReceiptDate = function(dStr) {
         if (!dStr) return '';
         var parts = dStr.split('-');
@@ -2969,9 +2979,9 @@ function printTradeReceipt(tradeId) {
                             <td class="mono" style="text-align: right; color: #16a34a;">${fNum(dealAmt)}</td>
                             <td style="text-align: left;">—</td>
                         </tr>
-                        <!-- Receivable Highlight Row -->
+                        <!-- Payable / Receivable Highlight Row -->
                         <tr style="font-weight: bold; background: #fef9c3;">
-                            <td colspan="3" style="text-align: left; color: #b45309; text-transform: uppercase;">Receivable</td>
+                            <td colspan="3" style="text-align: left; color: #b45309; text-transform: uppercase;">${highlightLabel}</td>
                             <td style="text-align: right;">—</td>
                             <td style="text-align: right;">—</td>
                             <td style="text-align: right;">—</td>
@@ -2980,6 +2990,20 @@ function printTradeReceipt(tradeId) {
                             <td style="text-align: right;">—</td>
                             <td class="mono" style="text-align: right; color: #b45309;">${fNum(yChgs)}</td>
                             <td class="mono" style="text-align: right; color: #16a34a;">${fNum(dealAmt)}</td>
+                            <td style="text-align: left;">—</td>
+                        </tr>
+                        <!-- Payment Done Row -->
+                        <tr style="font-weight: bold; background: #e0f2fe;">
+                            <td colspan="3" style="text-align: left; color: #0369a1; text-transform: uppercase;">Payment Done</td>
+                            <td colspan="7" style="text-align: right;">—</td>
+                            <td class="mono" style="text-align: right; color: #0369a1;">${fNum(totalPaid)}</td>
+                            <td style="text-align: left;">—</td>
+                        </tr>
+                        <!-- Pending Balance Row -->
+                        <tr style="font-weight: bold; background: ${balance > 0 ? '#fee2e2' : '#dcfce7'};">
+                            <td colspan="3" style="text-align: left; color: ${balance > 0 ? '#b91c1c' : '#15803d'}; text-transform: uppercase;">Pending Balance</td>
+                            <td colspan="7" style="text-align: right;">—</td>
+                            <td class="mono" style="text-align: right; color: ${balance > 0 ? '#b91c1c' : '#15803d'};">${fNum(balance)}</td>
                             <td style="text-align: left;">—</td>
                         </tr>
                     </tbody>
