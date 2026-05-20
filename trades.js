@@ -3416,20 +3416,26 @@ function printTradeInvoice(tradeId) {
         }
     }
 
-    var sellerGST = '27AARRM6631F1Z3';
+    var co = (state && state.company) ? state.company : {};
+    var myName      = co.name      || 'MURJI RAVJI AND COMPANY';
+    var myAddr      = co.addr      || 'SHOP NO 418 PLOT NO D380, SECTOR 12 FRUIT MARKET, KALAMBOLI, NAVI MUMBAI';
+    var myGstin     = co.gstin     || '27AARRM6631F1Z3';
+    var myState     = co.state     || 'Maharashtra';
+    var myStateCode = co.stateCode || '27';
+
     var buyerGST = partyPhone.length >= 15 ? partyPhone : '24CIVPS3974C1ZP';
 
-    var sellerName = t.type === 'Sell' ? 'MURJI RAVJI AND COMPANY' : t.party;
-    var sellerAddr = t.type === 'Sell' ? 'SHOP NO 418 PLOT NO D380, SECTOR 12 FRUIT MARKET, KALAMBOLI, NAVI MUMBAI' : (partyCity + ', India');
-    var sellerGstin = t.type === 'Sell' ? sellerGST : buyerGST;
-    var sellerState = t.type === 'Sell' ? 'Maharashtra' : partyState;
-    var sellerStateCode = t.type === 'Sell' ? '27' : partyStateCode;
+    var sellerName      = t.type === 'Sell' ? myName      : t.party;
+    var sellerAddr      = t.type === 'Sell' ? myAddr      : (partyCity + ', India');
+    var sellerGstin     = t.type === 'Sell' ? myGstin     : buyerGST;
+    var sellerState     = t.type === 'Sell' ? myState     : partyState;
+    var sellerStateCode = t.type === 'Sell' ? myStateCode : partyStateCode;
 
-    var buyerName = t.type === 'Sell' ? t.party : 'MURJI RAVJI AND COMPANY';
-    var buyerAddr = t.type === 'Sell' ? (partyCity + ', India') : 'SHOP NO 418 PLOT NO D380, SECTOR 12 FRUIT MARKET, KALAMBOLI, NAVI MUMBAI';
-    var buyerGstin = t.type === 'Sell' ? buyerGST : sellerGST;
-    var buyerState = t.type === 'Sell' ? partyState : 'Maharashtra';
-    var buyerStateCode = t.type === 'Sell' ? partyStateCode : '27';
+    var buyerName      = t.type === 'Sell' ? t.party : myName;
+    var buyerAddr      = t.type === 'Sell' ? (partyCity + ', India') : myAddr;
+    var buyerGstin     = t.type === 'Sell' ? buyerGST : myGstin;
+    var buyerState     = t.type === 'Sell' ? partyState : myState;
+    var buyerStateCode = t.type === 'Sell' ? partyStateCode : myStateCode;
 
     var consigneeName = buyerName;
     var consigneeAddr = buyerAddr;

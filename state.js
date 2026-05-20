@@ -23,7 +23,20 @@ var DEF_S = {
     challans: [],
     suppliers: [],
     buyers: [],
-    nextInvId: 1, nextTradeId: 2, nextOrderNum: 1, nextSupId: 1, nextBuyId: 1, nextChNum: 1
+    nextInvId: 1, nextTradeId: 2, nextOrderNum: 1, nextSupId: 1, nextBuyId: 1, nextChNum: 1,
+    company: {
+        name: 'MURJI RAVJI AND COMPANY',
+        addr: 'SHOP NO 418 PLOT NO D380, SECTOR 12 FRUIT MARKET, KALAMBOLI, NAVI MUMBAI',
+        gstin: '27AARRM6631F1Z3',
+        state: 'Maharashtra',
+        stateCode: '27',
+        phone: '',
+        email: '',
+        bankName: '',
+        bankAc: '',
+        bankIfsc: '',
+        bankBranch: ''
+    }
 };
 
 var state;
@@ -102,12 +115,32 @@ function runMigrations() {
     if (!state.tallyBankLedger) state.tallyBankLedger = 'Bank Account';
     if (!state.tallyCashLedger) state.tallyCashLedger = 'Cash';
 
+    // Ensure company object exists with defaults
+    if (!state.company) {
+        state.company = {
+            name: 'MURJI RAVJI AND COMPANY',
+            addr: 'SHOP NO 418 PLOT NO D380, SECTOR 12 FRUIT MARKET, KALAMBOLI, NAVI MUMBAI',
+            gstin: '27AARRM6631F1Z3',
+            state: 'Maharashtra',
+            stateCode: '27',
+            phone: '',
+            email: '',
+            bankName: '',
+            bankAc: '',
+            bankIfsc: '',
+            bankBranch: ''
+        };
+    }
+
     if (document.getElementById('api-key')) document.getElementById('api-key').value = state.apiKey;
     if (document.getElementById('api-model')) document.getElementById('api-model').value = state.apiModel;
     if (document.getElementById('tally-url')) document.getElementById('tally-url').value = state.tallyUrl;
     if (document.getElementById('tally-company')) document.getElementById('tally-company').value = state.tallyCompany;
     if (document.getElementById('tally-bank-ledger')) document.getElementById('tally-bank-ledger').value = state.tallyBankLedger;
     if (document.getElementById('tally-cash-ledger')) document.getElementById('tally-cash-ledger').value = state.tallyCashLedger;
+
+    // Load company details into form
+    loadCompanyDetails();
 
     // 3. Ensure suppliers have all required fields
     if (state.suppliers) {
@@ -495,6 +528,49 @@ function importStateFromFile(input) {
     reader.readAsText(file);
 }
 
+/* ═══════ COMPANY DETAILS ═══════ */
+function saveCompanyDetails() {
+    if (!state.company) state.company = {};
+    var g = function(id) {
+        var el = document.getElementById(id);
+        return el ? el.value.trim() : '';
+    };
+    state.company.name       = g('co-name');
+    state.company.addr       = g('co-addr');
+    state.company.gstin      = g('co-gstin');
+    state.company.state      = g('co-state');
+    state.company.stateCode  = g('co-state-code');
+    state.company.phone      = g('co-phone');
+    state.company.email      = g('co-email');
+    state.company.bankName   = g('co-bank-name');
+    state.company.bankAc     = g('co-bank-ac');
+    state.company.bankIfsc   = g('co-bank-ifsc');
+    state.company.bankBranch = g('co-bank-branch');
+    saveState();
+    var ok = document.getElementById('co-save-ok');
+    if (ok) { ok.style.display = 'block'; setTimeout(function() { ok.style.display = 'none'; }, 3000); }
+    if (typeof toast === 'function') toast('Company details saved!');
+}
+
+function loadCompanyDetails() {
+    var co = (state && state.company) ? state.company : {};
+    var s = function(id, val) {
+        var el = document.getElementById(id);
+        if (el) el.value = val || '';
+    };
+    s('co-name',        co.name);
+    s('co-addr',        co.addr);
+    s('co-gstin',       co.gstin);
+    s('co-state',       co.state);
+    s('co-state-code',  co.stateCode);
+    s('co-phone',       co.phone);
+    s('co-email',       co.email);
+    s('co-bank-name',   co.bankName);
+    s('co-bank-ac',     co.bankAc);
+    s('co-bank-ifsc',   co.bankIfsc);
+    s('co-bank-branch', co.bankBranch);
+}
+
 // Window Bridge
 (function (w) {
     const exports = {
@@ -510,7 +586,9 @@ function importStateFromFile(input) {
         handleLogout,
         initializeStorage,
         exportStateToFile,
-        importStateFromFile
+        importStateFromFile,
+        saveCompanyDetails,
+        loadCompanyDetails
     };
     for (const key in exports) {
         if (typeof exports[key] === 'function') {
@@ -518,3 +596,7 @@ function importStateFromFile(input) {
         }
     }
 })(window);
+
+// Direct global assignments for inline onclick handlers
+window.saveCompanyDetails = saveCompanyDetails;
+window.loadCompanyDetails = loadCompanyDetails;
