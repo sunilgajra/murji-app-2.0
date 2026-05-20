@@ -2841,114 +2841,158 @@ function printTradeReceipt(tradeId) {
     var dealAmt = qtyKG * dealRate;
     var yChgs = dealAmt - tAmt;
 
+    var formatReceiptDate = function(dStr) {
+        if (!dStr) return '';
+        var parts = dStr.split('-');
+        if (parts.length === 3) {
+            return parts[2] + '.' + parts[1] + '.' + parts[0];
+        }
+        return dStr;
+    };
+
+    var fNum = function(val) {
+        return Number(val || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+    };
+
     var html = '';
 
     if (t.mode === 'local') {
+        var formattedDate = formatReceiptDate(t.date);
         html = `
-            <div style="font-family: 'Segoe UI', Arial, sans-serif; color: #333; padding: 20px;">
-                <!-- Company Header -->
-                <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #f59e0b; padding-bottom: 15px; margin-bottom: 20px;">
-                    <div>
-                        <h1 style="margin: 0; color: #f59e0b; font-size: 24px; font-weight: 700;">MURJI RAVJI & COMPANY</h1>
-                        <p style="margin: 4px 0 0 0; font-size: 13px; color: #666; font-weight: 500;">LOCAL TRADE INVOICE & PRICING BREAKDOWN</p>
-                    </div>
-                    <div style="text-align: right;">
-                        <p style="margin: 0; font-size: 14px; font-weight: bold;">Date: ${t.date}</p>
-                        <p style="margin: 4px 0 0 0; font-size: 12px; color: #666;">Ref: TR-${t.id}</p>
-                    </div>
+            <html>
+            <head>
+                <title>Trade_Receipt_${t.id}</title>
+                <style>
+                    @media print {
+                        @page {
+                            size: landscape;
+                            margin: 10mm;
+                        }
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            -webkit-print-color-adjust: exact;
+                            print-color-adjust: exact;
+                        }
+                    }
+                    body {
+                        font-family: Arial, sans-serif;
+                        color: #000;
+                        padding: 10px;
+                        margin: 0;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        table-layout: fixed;
+                        font-size: 10px;
+                        margin-top: 10px;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    th, td {
+                        border: 1px solid #000;
+                        padding: 6px 4px;
+                        vertical-align: middle;
+                        word-wrap: break-word;
+                    }
+                    th {
+                        background: #f2f2f2;
+                        font-weight: bold;
+                    }
+                    .mono {
+                        font-family: monospace;
+                        font-size: 10px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div style="font-size: 13px; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; font-family: Arial, sans-serif;">
+                    ${escH(t.party)}
                 </div>
-
-                <!-- Customer Details -->
-                <div style="background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 25px;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 13px;">
-                        <div>
-                            <span style="color: #666; display: block; margin-bottom: 2px;">CUSTOMER / PARTY</span>
-                            <strong style="font-size: 15px; color: #111;">${escH(t.party)}</strong>
-                        </div>
-                        <div>
-                            <span style="color: #666; display: block; margin-bottom: 2px;">VEHICLE NO</span>
-                            <strong style="font-size: 15px; color: #111;">${escH(t.veh || '—')}</strong>
-                        </div>
-                        <div>
-                            <span style="color: #666; display: block; margin-bottom: 2px;">INVOICE NO</span>
-                            <strong style="font-size: 14px; color: #111;">${escH(t.inv_no || '—')}</strong>
-                        </div>
-                        <div>
-                            <span style="color: #666; display: block; margin-bottom: 2px;">GST NO</span>
-                            <strong style="font-size: 14px; color: #111;">${escH(t.gst || '—')}</strong>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Breakdown Table -->
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 11px; text-align: right; border: 1px solid #ddd;">
+                <table>
+                    <colgroup>
+                        <col style="width: 7.5%;">
+                        <col style="width: 9%;">
+                        <col style="width: 7.5%;">
+                        <col style="width: 8.5%;">
+                        <col style="width: 5.5%;">
+                        <col style="width: 9.5%;">
+                        <col style="width: 7.5%;">
+                        <col style="width: 9.5%;">
+                        <col style="width: 5%;">
+                        <col style="width: 10.5%;">
+                        <col style="width: 10.5%;">
+                        <col style="width: 9.5%;">
+                    </colgroup>
                     <thead>
-                        <tr style="background: #f3f4f6; color: #111; font-weight: bold; border-bottom: 1px solid #ddd;">
-                            <th style="padding: 10px; border-right: 1px solid #ddd; text-align: left;">DATE</th>
-                            <th style="padding: 10px; border-right: 1px solid #ddd; text-align: left;">INV NO</th>
-                            <th style="padding: 10px; border-right: 1px solid #ddd; text-align: left;">OIL</th>
-                            <th style="padding: 10px; border-right: 1px solid #ddd;">BIL WT KG</th>
-                            <th style="padding: 10px; border-right: 1px solid #ddd;">KG/ltr RA</th>
-                            <th style="padding: 10px; border-right: 1px solid #ddd;">TAXABLE AMT</th>
-                            <th style="padding: 10px; border-right: 1px solid #ddd;">TAX (${taxPct}%)</th>
-                            <th style="padding: 10px; border-right: 1px solid #ddd;">T AMT</th>
-                            <th style="padding: 10px; border-right: 1px solid #ddd;">DEAL RT</th>
-                            <th style="padding: 10px; border-right: 1px solid #ddd;">Y CHGS</th>
-                            <th style="padding: 10px; border-right: 1px solid #ddd;">DEAL AMT</th>
-                            <th style="padding: 10px; text-align: left;">VEHICLE</th>
+                        <tr>
+                            <th style="text-align: left;">DATE</th>
+                            <th style="text-align: left;">INV NO</th>
+                            <th style="text-align: left;">OIL</th>
+                            <th style="text-align: right;">BIL WT KG</th>
+                            <th style="text-align: right;">KG/ltr RA</th>
+                            <th style="text-align: right;">TAXABLE AMT</th>
+                            <th style="text-align: right;">TAX (${taxPct}%)</th>
+                            <th style="text-align: right;">T AMT</th>
+                            <th style="text-align: right;">DEAL RT</th>
+                            <th style="text-align: right;">Y CHGS</th>
+                            <th style="text-align: right;">DEAL AMT</th>
+                            <th style="text-align: left;">VEHICLE</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr style="border-bottom: 1px solid #ddd;">
-                            <td style="padding: 10px; border-right: 1px solid #ddd; text-align: left;">${t.date}</td>
-                            <td style="padding: 10px; border-right: 1px solid #ddd; text-align: left;">${escH(t.inv_no || '—')}</td>
-                            <td style="padding: 10px; border-right: 1px solid #ddd; text-align: left; font-weight: 600;">${escH(t.product)}</td>
-                            <td style="padding: 10px; border-right: 1px solid #ddd; font-family: monospace;">${fmtN(qtyKG)}</td>
-                            <td style="padding: 10px; border-right: 1px solid #ddd; font-family: monospace;">${fmtN(taxRate)}</td>
-                            <td style="padding: 10px; border-right: 1px solid #ddd; font-family: monospace;">${fmtN(taxableAmt)}</td>
-                            <td style="padding: 10px; border-right: 1px solid #ddd; font-family: monospace;">${fmtN(taxAmt)}</td>
-                            <td style="padding: 10px; border-right: 1px solid #ddd; font-family: monospace; font-weight: 600;">${fmtN(tAmt)}</td>
-                            <td style="padding: 10px; border-right: 1px solid #ddd; font-family: monospace;">${fmtN(dealRate)}</td>
-                            <td style="padding: 10px; border-right: 1px solid #ddd; font-family: monospace; color: #b45309; font-weight: 600;">${fmtN(yChgs)}</td>
-                            <td style="padding: 10px; border-right: 1px solid #ddd; font-family: monospace; font-weight: 600;">${fmtN(dealAmt)}</td>
-                            <td style="padding: 10px; text-align: left;">${escH(t.veh || '—')}</td>
+                        <tr>
+                            <td style="text-align: left;">${formattedDate}</td>
+                            <td style="text-align: left;">${escH(t.inv_no || '—')}</td>
+                            <td style="text-align: left; font-weight: bold;">${escH(t.product)}</td>
+                            <td class="mono" style="text-align: right;">${fNum(qtyKG)}</td>
+                            <td class="mono" style="text-align: right;">${fNum(taxRate)}</td>
+                            <td class="mono" style="text-align: right;">${fNum(taxableAmt)}</td>
+                            <td class="mono" style="text-align: right;">${fNum(taxAmt)}</td>
+                            <td class="mono" style="text-align: right; font-weight: bold;">${fNum(tAmt)}</td>
+                            <td class="mono" style="text-align: right;">${fNum(dealRate)}</td>
+                            <td class="mono" style="text-align: right; font-weight: bold; color: #b45309;">${fNum(yChgs)}</td>
+                            <td class="mono" style="text-align: right; font-weight: bold; color: #16a34a;">${fNum(dealAmt)}</td>
+                            <td style="text-align: left;">${escH(t.veh || '—')}</td>
                         </tr>
                         <!-- Total Row -->
-                        <tr style="font-weight: bold; background: #fafafa; border-bottom: 1px solid #ddd;">
-                            <td colspan="3" style="padding: 10px; border-right: 1px solid #ddd; text-align: left; text-transform: uppercase;">Total</td>
-                            <td style="padding: 10px; border-right: 1px solid #ddd; font-family: monospace;">${fmtN(qtyKG)}</td>
-                            <td style="padding: 10px; border-right: 1px solid #ddd;">—</td>
-                            <td style="padding: 10px; border-right: 1px solid #ddd; font-family: monospace;">${fmtN(taxableAmt)}</td>
-                            <td style="padding: 10px; border-right: 1px solid #ddd; font-family: monospace;">${fmtN(taxAmt)}</td>
-                            <td style="padding: 10px; border-right: 1px solid #ddd; font-family: monospace; color: #0d9488;">${fmtN(tAmt)}</td>
-                            <td style="padding: 10px; border-right: 1px solid #ddd;">—</td>
-                            <td style="padding: 10px; border-right: 1px solid #ddd; font-family: monospace; color: #b45309;">${fmtN(yChgs)}</td>
-                            <td style="padding: 10px; border-right: 1px solid #ddd; font-family: monospace; color: #16a34a;">${fmtN(dealAmt)}</td>
-                            <td style="padding: 10px;">—</td>
+                        <tr style="font-weight: bold; background: #fafafa;">
+                            <td colspan="3" style="text-align: left; text-transform: uppercase;">Total</td>
+                            <td class="mono" style="text-align: right;">${fNum(qtyKG)}</td>
+                            <td style="text-align: right;">—</td>
+                            <td class="mono" style="text-align: right;">${fNum(taxableAmt)}</td>
+                            <td class="mono" style="text-align: right;">${fNum(taxAmt)}</td>
+                            <td class="mono" style="text-align: right; color: #0d9488;">${fNum(tAmt)}</td>
+                            <td style="text-align: right;">—</td>
+                            <td class="mono" style="text-align: right; color: #b45309;">${fNum(yChgs)}</td>
+                            <td class="mono" style="text-align: right; color: #16a34a;">${fNum(dealAmt)}</td>
+                            <td style="text-align: left;">—</td>
                         </tr>
                         <!-- Receivable Highlight Row -->
-                        <tr style="font-weight: bold; background: #fef9c3; border-top: 2px solid #f59e0b;">
-                            <td colspan="7" style="padding: 12px; border-right: 1px solid #ddd; text-align: left; font-size: 13px; color: #b45309; text-transform: uppercase;">Receivable</td>
-                            <td style="padding: 12px; border-right: 1px solid #ddd; font-family: monospace; font-size: 13px; color: #0d9488;">${fmtN(tAmt)}</td>
-                            <td style="padding: 12px; border-right: 1px solid #ddd;">—</td>
-                            <td style="padding: 12px; border-right: 1px solid #ddd; font-family: monospace; font-size: 13px; color: #b45309;">${fmtN(yChgs)}</td>
-                            <td style="padding: 12px; border-right: 1px solid #ddd; font-family: monospace; font-size: 13px; color: #16a34a;">${fmtN(dealAmt)}</td>
-                            <td style="padding: 12px;">—</td>
+                        <tr style="font-weight: bold; background: #fef9c3;">
+                            <td colspan="3" style="text-align: left; color: #b45309; text-transform: uppercase;">Receivable</td>
+                            <td style="text-align: right;">—</td>
+                            <td style="text-align: right;">—</td>
+                            <td style="text-align: right;">—</td>
+                            <td style="text-align: right;">—</td>
+                            <td class="mono" style="text-align: right; color: #0d9488;">${fNum(tAmt)}</td>
+                            <td style="text-align: right;">—</td>
+                            <td class="mono" style="text-align: right; color: #b45309;">${fNum(yChgs)}</td>
+                            <td class="mono" style="text-align: right; color: #16a34a;">${fNum(dealAmt)}</td>
+                            <td style="text-align: left;">—</td>
                         </tr>
                     </tbody>
                 </table>
-
-                <div style="margin-top: 40px; text-align: center; font-size: 11px; color: #94a3b8; font-style: italic; border-top: 1px solid #eee; padding-top: 15px;">
-                    Trade Receipt • Generated by Murji Oil Dashboard • ${new Date().toLocaleString()}
-                </div>
-            </div>
+            </body>
+            </html>
         `;
     } else {
         html = `
-            <div style="font-family: 'Segoe UI', Arial, sans-serif; color: #333; padding: 20px;">
+            <div style="font-family: Arial, sans-serif; color: #333; padding: 20px;">
                 <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #2563eb; padding-bottom: 15px; margin-bottom: 20px;">
                     <div>
-                        <h1 style="margin: 0; color: #2563eb; font-size: 24px; font-weight: 700;">MURJI RAVJI & COMPANY</h1>
+                        <h1 style="margin: 0; color: #2563eb; font-size: 20px; font-weight: 700; text-transform: uppercase;">${escH(t.party)}</h1>
                         <p style="margin: 4px 0 0 0; font-size: 13px; color: #666; font-weight: 500;">TRADE STATEMENT / RECEIPT</p>
                     </div>
                     <div style="text-align: right;">
@@ -2968,19 +3012,15 @@ function printTradeReceipt(tradeId) {
                         <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; background: #f9f9f9;">PRODUCT</td>
                         <td style="padding: 8px; border: 1px solid #ddd;">${escH(t.product)}</td>
                         <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; background: #f9f9f9;">QUANTITY</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">${fmtN(rawQty)} ${t.unit || 'L'}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${fNum(rawQty)} ${t.unit || 'L'}</td>
                     </tr>
                     <tr>
                         <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; background: #f9f9f9;">RATE / PRICE</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">₹ ${fmt(t.price)}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">₹ ${fNum(t.price)}</td>
                         <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; background: #f9f9f9;">TOTAL AMOUNT</td>
-                        <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #16a34a;">₹ ${fmt(rawQty * t.price)}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #16a34a;">₹ ${fNum(rawQty * t.price)}</td>
                     </tr>
                 </table>
-
-                <div style="margin-top: 40px; text-align: center; font-size: 11px; color: #94a3b8; font-style: italic; border-top: 1px solid #eee; padding-top: 15px;">
-                    Trade Receipt • Generated by Murji Oil Dashboard • ${new Date().toLocaleString()}
-                </div>
             </div>
         `;
     }
