@@ -15,6 +15,7 @@ function renderSuppliersTable() {
         return '<tr><td><b>' + escH(s.name) + '</b></td><td>' + typeBadge + '</td><td>' + escH(s.contact) + '</td><td class="mono">' + escH(s.phone) + '</td><td>' + escH(s.city) + '</td><td>' + bankInfo + '</td><td>' +
             '<div style="display:flex;gap:4px">' +
             '<button class="btn btn-primary btn-sm" onclick="editSupplier(' + s.id + ')">&#x270F;</button>' +
+            '<button class="btn btn-gold btn-sm" onclick="openPartyStatementModal(\'suppliers\',' + s.id + ')">&#x1F4C4; Statement</button>' +
             '<button class="btn btn-danger btn-sm" onclick="deleteItem(\'suppliers\',' + s.id + ')">&#x2715;</button>' +
             '</div></td></tr>';
     }).join('');
@@ -111,6 +112,7 @@ function renderBuyersTable() {
         return '<tr><td><b>' + escH(b.name) + '</b></td><td>' + escH(b.contact) + '</td><td class="mono">' + escH(b.phone) + '</td><td>' + escH(b.city) + '</td><td>' + bankInfo + '</td><td>' +
             '<div style="display:flex;gap:4px">' +
             '<button class="btn btn-primary btn-sm" onclick="editBuyer(' + b.id + ')">&#x270F;</button>' +
+            '<button class="btn btn-gold btn-sm" onclick="openPartyStatementModal(\'buyers\',' + b.id + ')">&#x1F4C4; Statement</button>' +
             '<button class="btn btn-danger btn-sm" onclick="deleteItem(\'buyers\',' + b.id + ')">&#x2715;</button>' +
             '</div></td></tr>';
     }).join('');
@@ -224,12 +226,297 @@ function deleteItem(arr, id) {
     });
 }
 
+/* ═══════ PARTY STATEMENTS ═══════ */
+var currentStatementPartyName = "";
+var currentStatementPartyType = "";
+
+function openPartyStatementModal(partyType, partyId) {
+    var party = null;
+    if (partyType === 'suppliers') {
+        party = state.suppliers.find(function (x) { return x.id === partyId; });
+    } else {
+        party = state.buyers.find(function (x) { return x.id === partyId; });
+    }
+    if (!party) return toast('Party not found', true);
+
+    currentStatementPartyName = party.name;
+    currentStatementPartyType = partyType;
+
+    document.getElementById('psm-title').innerHTML = '<i class="fas fa-file-invoice"></i> Statement Center — ' + escH(party.name);
+    
+    // Find all trades for this party
+    var partyTrades = state.trades.filter(function (t) {
+        return t.party && t.party.toLowerCase().trim() === party.name.toLowerCase().trim();
+    });
+
+    // Sort by date descending
+    partyTrades.sort(function (a, b) {
+        return new Date(b.date) - new Date(a.date);
+    });
+
+    var tbody = document.getElementById('psm-tbody');
+    if (partyTrades.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:var(--muted);">No trades found for this party.</td></tr>';
+        document.getElementById('psm-select-all').checked = false;
+        document.getElementById('psm-select-all').disabled = true;
+    } else {
+        document.getElementById('psm-select-all').checked = true;
+        document.getElementById('psm-select-all').disabled = false;
+        
+        var formatReceiptDate = function(dStr) {
+            if (!dStr) return '';
+            var parts = dStr.split('-');
+            if (parts.length === 3) {
+                return parts[2] + '.' + parts[1] + '.' + parts[0];
+            }
+            return dStr;
+        };
+
+        var fNum = function(val) {
+            return Number(val || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+        };
+
+        tbody.innerHTML = partyTrades.map(function (t) {
+            var rawQty = parseFloat(t.raw_qty) || parseFloat(t.vol) || 0;
+            var totalVal = rawQty * (parseFloat(t.price) || 0);
+            if (t.mode === 'local') {
+                var den = parseFloat(t.density) || 0.85;
+                var unit = t.unit || 'L';
+                var qtyKG = (unit === 'KG') ? rawQty : (unit === 'MTON' ? rawQty * 1000 : rawQty * den);
+                totalVal = qtyKG * (parseFloat(t.deal_rate) || 0);
+            }
+            return '<tr>' +
+                '<td style="padding:10px;"><input type="checkbox" class="psm-row-chk" data-trade-id="' + t.id + '" checked onclick="updatePsmSelectAllState()"></td>' +
+                '<td style="padding:10px;">' + formatReceiptDate(t.date) + '</td>' +
+                '<td style="padding:10px;"><span class="badge ' + (t.type === 'Buy' ? 'badge-blue' : 'badge-green') + '">' + t.type + '</span></td>' +
+                '<td style="padding:10px; font-weight:bold;">' + escH(t.product) + '</td>' +
+                '<td style="padding:10px; text-align:right;" class="mono">' + fNum(rawQty) + ' ' + (t.unit || 'L') + '</td>' +
+                '<td style="padding:10px; text-align:right;" class="mono">₹ ' + fNum(t.price) + '</td>' +
+                '<td style="padding:10px; text-align:right;" class="mono">₹ ' + fNum(totalVal) + '</td>' +
+                '<td style="padding:10px; text-align:left;"><span class="badge badge-gray">' + t.mode.toUpperCase() + '</span></td>' +
+                '<td style="padding:10px; text-align:center;"><button class="btn btn-sm btn-ghost" onclick="printTradeReceipt(' + t.id + ')">&#x1F5B6; Print Deal</button></td>' +
+                '</tr>';
+        }).join('');
+    }
+
+    document.getElementById('partyStatementModal').classList.add('show');
+}
+
+function closePartyStatementModal() {
+    document.getElementById('partyStatementModal').classList.remove('show');
+}
+
+function togglePsmSelectAll(master) {
+    var chks = document.querySelectorAll('.psm-row-chk');
+    chks.forEach(function (chk) {
+        chk.checked = master.checked;
+    });
+}
+
+function updatePsmSelectAllState() {
+    var chks = document.querySelectorAll('.psm-row-chk');
+    var allChecked = true;
+    chks.forEach(function (chk) {
+        if (!chk.checked) allChecked = false;
+    });
+    var master = document.getElementById('psm-select-all');
+    if (master) {
+        master.checked = allChecked && chks.length > 0;
+    }
+}
+
+function generateMasterStatement() {
+    var chks = document.querySelectorAll('.psm-row-chk:checked');
+    if (chks.length === 0) return toast('Please select at least one trade', true);
+
+    var selectedIds = Array.from(chks).map(function (chk) {
+        return parseInt(chk.getAttribute('data-trade-id'));
+    });
+
+    var selectedTrades = state.trades.filter(function (t) {
+        return selectedIds.includes(t.id);
+    });
+
+    selectedTrades.sort(function (a, b) {
+        return new Date(a.date) - new Date(b.date);
+    });
+
+    var formatReceiptDate = function(dStr) {
+        if (!dStr) return '';
+        var parts = dStr.split('-');
+        if (parts.length === 3) {
+            return parts[2] + '.' + parts[1] + '.' + parts[0];
+        }
+        return dStr;
+    };
+
+    var fNum = function(val) {
+        return Number(val || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+    };
+
+    var totalAmt = 0;
+    var totalQtyKG = 0;
+    var totalQtyL = 0;
+
+    var rowsHtml = selectedTrades.map(function (t) {
+        var rawQty = parseFloat(t.raw_qty) || parseFloat(t.vol) || 0;
+        var unit = t.unit || 'L';
+        var price = parseFloat(t.price) || 0;
+        var mode = t.mode || 'local';
+        var dateStr = formatReceiptDate(t.date);
+        var invNo = t.inv_no || '—';
+        var vehNo = t.veh || '—';
+        var oil = t.product || '—';
+
+        var displayQty = rawQty;
+        var displayRate = price;
+        var displayAmt = rawQty * price;
+
+        if (mode === 'local') {
+            var den = parseFloat(t.density) || 0.85;
+            var qtyKG = (unit === 'KG') ? rawQty : (unit === 'MTON' ? rawQty * 1000 : rawQty * den);
+            var dealRate = parseFloat(t.deal_rate) || 0;
+            displayQty = qtyKG;
+            displayRate = dealRate;
+            displayAmt = qtyKG * dealRate;
+            totalQtyKG += qtyKG;
+        } else {
+            if (unit === 'KG') {
+                totalQtyKG += rawQty;
+            } else if (unit === 'MTON') {
+                totalQtyKG += rawQty * 1000;
+            } else {
+                totalQtyL += rawQty;
+            }
+        }
+
+        totalAmt += displayAmt;
+
+        return `
+            <tr>
+                <td style="text-align: left;">${dateStr}</td>
+                <td style="text-align: left;">${escH(invNo)}</td>
+                <td style="text-align: left;"><span style="font-weight: bold;">${t.type.toUpperCase()}</span> (${mode.toUpperCase()})</td>
+                <td style="text-align: left; font-weight: bold;">${escH(oil)}</td>
+                <td class="mono" style="text-align: right;">${fNum(displayQty)} ${mode === 'local' ? 'KG' : unit}</td>
+                <td class="mono" style="text-align: right;">${fNum(displayRate)}</td>
+                <td class="mono" style="text-align: right; font-weight: bold;">${fNum(displayAmt)}</td>
+                <td style="text-align: left;">${escH(vehNo)}</td>
+            </tr>
+        `;
+    }).join('');
+
+    var qtySummary = [];
+    if (totalQtyKG > 0) qtySummary.push(fNum(totalQtyKG) + ' KG');
+    if (totalQtyL > 0) qtySummary.push(fNum(totalQtyL) + ' L');
+    var qtySummaryStr = qtySummary.join(' / ') || '0';
+
+    var html = `
+        <html>
+        <head>
+            <title>Master_Statement_${currentStatementPartyName.replace(/\s+/g, '_')}</title>
+            <style>
+                @media print {
+                    @page {
+                        size: landscape;
+                        margin: 10mm;
+                    }
+                    body {
+                        margin: 0;
+                        padding: 0;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                }
+                body {
+                    font-family: Arial, sans-serif;
+                    color: #000;
+                    padding: 10px;
+                    margin: 0;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    table-layout: fixed;
+                    font-size: 10px;
+                    margin-top: 15px;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                }
+                th, td {
+                    border: 1px solid #000;
+                    padding: 6px 4px;
+                    vertical-align: middle;
+                    word-wrap: break-word;
+                }
+                th {
+                    background: #f2f2f2;
+                    font-weight: bold;
+                }
+                .mono {
+                    font-family: monospace;
+                    font-size: 10px;
+                }
+            </style>
+        </head>
+        <body>
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 10px;">
+                <div style="font-size: 16px; font-weight: bold; text-transform: uppercase; font-family: Arial, sans-serif;">
+                    ${escH(currentStatementPartyName)}
+                </div>
+                <div style="font-size: 11px; font-weight: bold; font-family: Arial, sans-serif; text-transform: uppercase;">
+                    CONSOLIDATED MASTER STATEMENT
+                </div>
+            </div>
+            <table>
+                <colgroup>
+                    <col style="width: 10%;">
+                    <col style="width: 12%;">
+                    <col style="width: 12%;">
+                    <col style="width: 14%;">
+                    <col style="width: 12%;">
+                    <col style="width: 8%;">
+                    <col style="width: 16%;">
+                    <col style="width: 16%;">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th style="text-align: left;">DATE</th>
+                        <th style="text-align: left;">INV NO</th>
+                        <th style="text-align: left;">TYPE</th>
+                        <th style="text-align: left;">OIL / PRODUCT</th>
+                        <th style="text-align: right;">QUANTITY</th>
+                        <th style="text-align: right;">RATE</th>
+                        <th style="text-align: right;">TOTAL AMOUNT (₹)</th>
+                        <th style="text-align: left;">VEHICLE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rowsHtml}
+                    <!-- Total Row -->
+                    <tr style="font-weight: bold; background: #fafafa;">
+                        <td colspan="4" style="text-align: left; text-transform: uppercase;">Total</td>
+                        <td class="mono" style="text-align: right;">${qtySummaryStr}</td>
+                        <td style="text-align: right;">—</td>
+                        <td class="mono" style="text-align: right; color: #16a34a;">${fNum(totalAmt)}</td>
+                        <td style="text-align: left;">—</td>
+                    </tr>
+                </tbody>
+            </table>
+        </body>
+        </html>
+    `;
+
+    openPrintWindow(html, `Statement_${currentStatementPartyName.replace(/\s+/g, '_')}`);
+}
+
 // Window Bridge
 (function (w) {
     const exports = {
         renderSuppliersTable, toggleSupIntlFields, editSupplier, clearSupForm, addSupplier,
         renderBuyersTable, editBuyer, clearBuyForm, addBuyer,
-        customConfirm, deleteItem
+        customConfirm, deleteItem,
+        openPartyStatementModal, closePartyStatementModal, togglePsmSelectAll, updatePsmSelectAllState, generateMasterStatement
     };
     for (const key in exports) {
         if (typeof exports[key] === 'function') {

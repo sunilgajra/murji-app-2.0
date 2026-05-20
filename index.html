@@ -1010,6 +1010,46 @@
     </div>
 </div>
 
+<!-- Party Statement Modal -->
+<div id="partyStatementModal" class="modal">
+    <div class="modal-content" style="width:95%; max-width:900px; background:var(--surface); border:1px solid var(--border); padding:25px; border-radius:15px; max-height:90vh; overflow-y:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:15px;">
+            <h2 style="color:var(--gold2); margin:0;" id="psm-title"><i class="fas fa-file-invoice"></i> Statement Center</h2>
+            <span class="close" onclick="closePartyStatementModal()" style="font-size:24px; cursor:pointer; color:var(--muted);">&times;</span>
+        </div>
+        
+        <div style="margin-bottom:20px;">
+            <p style="font-size:13px; color:var(--muted); margin-bottom:15px;">Select which trades you want to include in the consolidated master statement, or print a single deal statement.</p>
+            
+            <div class="table-wrap scroll-x" style="background:var(--surface2); border-radius:8px; border:1px solid var(--border); margin-bottom:20px; max-height: 400px; overflow-y: auto;">
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr style="border-bottom:1px solid var(--border); font-size:11px; color:var(--muted); background:rgba(255,255,255,0.02);">
+                            <th style="padding:10px; text-align:left; width:40px;"><input type="checkbox" id="psm-select-all" onclick="togglePsmSelectAll(this)" checked></th>
+                            <th style="padding:10px; text-align:left;">Date</th>
+                            <th style="padding:10px; text-align:left;">Type</th>
+                            <th style="padding:10px; text-align:left;">Product</th>
+                            <th style="padding:10px; text-align:right;">Quantity</th>
+                            <th style="padding:10px; text-align:right;">Price/Unit</th>
+                            <th style="padding:10px; text-align:right;">Total Value</th>
+                            <th style="padding:10px; text-align:left;">Mode</th>
+                            <th style="padding:10px; text-align:center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="psm-tbody">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div style="display:flex; gap:10px;">
+            <button class="btn btn-gold" onclick="generateMasterStatement()" style="flex:2; font-weight:bold;">⚡ GENERATE MASTER STATEMENT</button>
+            <button class="btn btn-ghost" onclick="closePartyStatementModal()" style="flex:1;">CANCEL</button>
+        </div>
+    </div>
+</div>
+
 <!-- Hidden print zone for Reports -->
 <div id="hss-print-container" style="position:absolute; left:-9999px; top:0; width:210mm; background:#fff; z-index:-1;"></div>
 
