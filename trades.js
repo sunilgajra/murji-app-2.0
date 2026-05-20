@@ -1307,6 +1307,21 @@ function viewExpenseDoc(rowId) {
     openDocPreview(data, 'Expense Receipt Preview');
 }
 
+/*******************************************************************************
+ * Added helper to convert DataURL to File object for Cloud uploads.
+ ******************************************************************************/
+function dataURLtoFile(dataurl, filename) {
+    var arr = dataurl.split(','),
+        mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]), 
+        n = bstr.length, 
+        u8arr = new Uint8Array(n);
+    while(n--){
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, {type:mime});
+}
+
 function getTradeExpenses() {
     const rows = document.querySelectorAll('#tr-expenses-body tr');
     const expenses = [];
@@ -1341,6 +1356,7 @@ function removeExpenseRow(id) {
     updateTotalExpenses();
 }
 
+// Fixed function name to match call updates
 function updateExpenseData(rowId) {
     updateTotalExpenses();
 }

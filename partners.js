@@ -190,6 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var noBtn = document.getElementById('confirmNo');
     if (yesBtn) {
         yesBtn.onclick = function () {
+            document.getElementById('confirmModal').classList.remove('remove');
             document.getElementById('confirmModal').classList.remove('show');
             if (_confirmResolve) _confirmResolve(true);
         };

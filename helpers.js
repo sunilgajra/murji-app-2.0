@@ -250,7 +250,7 @@ function downloadChallanPDF(id) {
         '<div class="sig-block"><div class="sig-line">Authorized Signatory</div></div>' +
         '<div class="sig-block"><div class="sig-line">Receiver Signature</div></div>' +
         '</div>' +
-        '<div class="print-note">This is a computer-generated document from Murji Ravji & Co. \\u2014 ' + new Date().toLocaleString('en-IN') + '</div>';
+        '<div class="print-note">This is a computer-generated document from Murji Ravji & Co. \u2014 ' + new Date().toLocaleString('en-IN') + '</div>';
 
     openPrintWindow(html, c.id + '_' + c.product);
 }

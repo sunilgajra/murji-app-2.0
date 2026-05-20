@@ -217,7 +217,7 @@ function syncIsoVolWeight(unit) {
 
 function registerNewTank() {
     if (!state.tanks) state.tanks = [];
-    const name = (document.getElementById('yard-new-tank-name').value || '').trim();
+    const name = (document.getElementById('yard-new-tank-name').value || '').trim().toUpperCase();
     let cap = parseFloat(document.getElementById('yard-new-tank-cap').value);
     const capKG = parseFloat(document.getElementById('yard-new-tank-cap-kg').value);
     const capMT = parseFloat(document.getElementById('yard-new-tank-cap-mt').value);
