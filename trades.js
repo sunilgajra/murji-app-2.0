@@ -666,7 +666,7 @@ TASK: Extract Bill of Lading, Commercial Invoice, or Bill of Entry (BOE/BE) data
 RULES: 
 1. Fix all OCR errors. Reconstruct the full list of container numbers (4 letters + 7 digits).
 2. Format weights as 0.00. Extract the overall Gross Weight of the shipment as "gross_weight" and overall Net Weight of the shipment as "net_weight".
-3. Identify Vessel, Ports, Agent, and HS Code.
+3. Identify Vessel, Ports, Agent (only for Bill of Lading / Shipping documents; do NOT extract Vessel, Port of Loading, Port of Discharge, or Destination Agent if the document is a Bill of Entry / BOE / Custom document), and HS Code.
 4. Extract "Invoice Number" if scanning an Invoice.
 5. Extract "Number of Containers" (Total count).
 6. If scanning a Bill of Entry (BOE/BE):
@@ -676,6 +676,7 @@ RULES:
    - Extract the Fine as "boe_fine" (if any, default to 0.00).
    - Extract the Penalty as "boe_penalty" (if any, default to 0.00).
    - Extract the Interest as "boe_interest" (if any, default to 0.00).
+   - Do NOT scan, extract, or return vessel, port_load, port_dis, or dest_agent (leave them empty or omit them).
 7. If the document has a container-level packing list or weight breakdown, extract the individual container weights.
 Return ONLY JSON: { "bl_no": "", "inv_no": "", "vessel": "", "port_load": "", "port_dis": "", "dest_agent": "", "hs_code": "", "gross_weight": "", "net_weight": "", "container_count": 0, "boe_no": "", "boe_date": "", "duty_amt": 0.00, "boe_fine": 0.00, "boe_penalty": 0.00, "boe_interest": 0.00, "containers_tally": [{"container_no": "", "bl_gross": 0.00, "bl_net": 0.00}] }` },
                         { inlineData: { mimeType: docOrText.type || "application/pdf", data: base64Data } }
@@ -727,18 +728,21 @@ Return ONLY JSON: { "bl_no": "", "inv_no": "", "vessel": "", "port_load": "", "p
                 return defaultVal;
             };
 
+            const boeNo = getVal(['boe_no', 'boe_number', 'be_no', 'be_number', 'bill_of_entry_no']);
+            const hasBoe = boeNo && boeNo !== '0' && boeNo !== '';
+
             const fields = {
                 'tr-bl-no': getVal(['bl_no', 'bl_number', 'blNo', 'bill_of_lading_no']),
                 'tr-inv-no-intl': getVal(['inv_no', 'invoice_no', 'invoice_number']),
-                'tr-vessel': getVal(['vessel', 'vessel_name', 'vesselName']),
-                'tr-port-load': getVal(['port_load', 'loading_port']),
-                'tr-port-dis': getVal(['port_dis', 'discharge_port']),
-                'tr-agent': getVal(['dest_agent', 'agent', 'agent_dest']),
+                'tr-vessel': hasBoe ? '' : getVal(['vessel', 'vessel_name', 'vesselName']),
+                'tr-port-load': hasBoe ? '' : getVal(['port_load', 'loading_port']),
+                'tr-port-dis': hasBoe ? '' : getVal(['port_dis', 'discharge_port']),
+                'tr-agent': hasBoe ? '' : getVal(['dest_agent', 'agent', 'agent_dest']),
                 'tr-hs-code': getVal(['hs_code', 'hscode']),
                 'tr-gross-weight': getVal(['gross_weight', 'gross_wt', 'grossWeight']),
                 'tr-net-weight': getVal(['net_weight', 'net_wt', 'netWeight']),
                 'tr-container-count': getVal(['container_count', 'containers_count']),
-                'tr-boe-no': getVal(['boe_no', 'boe_number', 'be_no', 'be_number', 'bill_of_entry_no']),
+                'tr-boe-no': boeNo,
                 'tr-boe-date': getVal(['boe_date', 'be_date']),
                 'tr-duty-amt': getVal(['duty_amt', 'duty_amount', 'customs_duty', 'duty']),
                 'tr-boe-fine': getVal(['boe_fine', 'fine', 'redemption_fine', 'fine_amt']),
