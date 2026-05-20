@@ -2576,9 +2576,14 @@ function toggleTradeDetailFields() {
     var loc = document.querySelector('.tr-local-fields');
     var linkGrp = document.getElementById('tr-link-group');
     var srcGrp = document.getElementById('tr-source-loc-group');
+    var destGrp = document.getElementById('tr-dest-loc-group');
 
+    // Source (FROM) only visible for Sell-Local and Move
     if (srcGrp) srcGrp.style.display = (type === 'Move' || (type === 'Sell' && mode === 'local')) ? 'block' : 'none';
     if (srcGrp && srcGrp.style.display === 'block') populateSourceLocations();
+
+    // Destination (TO / Storage) only visible for Buy-Local and Move — NOT for Sell
+    if (destGrp) destGrp.style.display = (type === 'Buy' || type === 'Move') ? 'block' : 'none';
 
     if (type === 'Move') {
         if (imp) imp.style.display = 'none';
