@@ -769,6 +769,85 @@
 <!-- AI SETTINGS -->
 <div id="page-settings" class="page">
     <div class="container" style="max-width:600px; padding-top:40px;">
+        <!-- ═══ COMPANY DETAILS CARD ═══ -->
+        <div class="card" style="padding:30px; background:var(--surface); border:1px solid var(--border); margin-bottom:24px;">
+            <h3 style="color:var(--gold2); margin-top:0; display:flex; align-items:center; gap:8px;">
+                🏢 My Company Details
+            </h3>
+            <p style="color:var(--muted); font-size:13px; margin-top:-6px;">These details are used automatically on Tax Invoices and Receipts.</p>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:20px;">
+                <div class="form-group" style="grid-column:1/-1;">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">Company / Firm Name *</label>
+                    <input type="text" id="co-name" placeholder="e.g. MURJI RAVJI AND COMPANY"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+                <div class="form-group" style="grid-column:1/-1;">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">Full Address</label>
+                    <textarea id="co-addr" rows="2" placeholder="Shop No., Street, Area, City, State – PIN"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; resize:vertical; box-sizing:border-box;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">GSTIN / UIN</label>
+                    <input type="text" id="co-gstin" placeholder="27AAXXXX1234X1ZX"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">State Name</label>
+                    <input type="text" id="co-state" placeholder="e.g. Maharashtra"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">State Code</label>
+                    <input type="text" id="co-state-code" placeholder="e.g. 27"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">Phone / Mobile</label>
+                    <input type="text" id="co-phone" placeholder="+91 98XXX XXXXX"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+                <div class="form-group" style="grid-column:1/-1;">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">Email</label>
+                    <input type="email" id="co-email" placeholder="company@email.com"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+
+                <!-- Bank Details Sub-section -->
+                <div style="grid-column:1/-1; border-top:1px solid var(--border); padding-top:16px; margin-top:4px;">
+                    <p style="color:var(--muted); font-size:11px; text-transform:uppercase; font-weight:600; margin:0 0 14px 0; letter-spacing:0.5px;">Bank Details (for invoice footer)</p>
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">Bank Name</label>
+                    <input type="text" id="co-bank-name" placeholder="State Bank of India"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">Account Number</label>
+                    <input type="text" id="co-bank-ac" placeholder="00000XXXXXXXXXX"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">IFSC Code</label>
+                    <input type="text" id="co-bank-ifsc" placeholder="SBIN0XXXXXX"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">Branch</label>
+                    <input type="text" id="co-bank-branch" placeholder="Navi Mumbai Branch"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+            </div>
+
+            <button class="btn btn-gold" onclick="saveCompanyDetails()" style="width:100%; margin-top:20px; font-weight:700; letter-spacing:0.5px; padding:13px;">
+                💾 SAVE COMPANY DETAILS
+            </button>
+            <div id="co-save-ok" style="display:none; text-align:center; color:var(--teal); font-size:12px; margin-top:8px; font-weight:600;">
+                ✓ Saved! These details will now appear on all your invoices.
+            </div>
+        </div>
+    </div>
+    <div class="container" style="max-width:600px; padding-top:40px;">
         <div class="card" style="padding:30px; background:var(--surface); border:1px solid var(--border);">
             <h3 style="color:var(--gold2); margin-top:0;">&#x2699; AI Configuration</h3>
             <p style="color:var(--muted); font-size:13px;">Enhance your scans with Google Gemini 1.5 for 100% accuracy on complex documents like Rider Sheets.</p>
