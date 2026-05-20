@@ -180,9 +180,9 @@ function openPrintWindow(html, filename) {
     <!DOCTYPE html>
     <html>
     <head>
-        <title>\${filename}</title>
-        \${commonStyle()}
-        \${previewScript()}
+        <title>${filename}</title>
+        ${commonStyle()}
+        ${previewScript()}
     </head>
     <body>
         <div class="previewActions">
@@ -191,7 +191,7 @@ function openPrintWindow(html, filename) {
             <button onclick="window.close()" style="background:#888">Back</button>
         </div>
         <div class="doc">
-            \${html}
+            ${html}
         </div>
     </body>
     </html>`;
