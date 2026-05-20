@@ -1,7 +1,4 @@
-/* ═══════ SUPABASE CONFIG ═══════ */
-const SUPABASE_URL = "https://vrkilanytzftkpfllqjh.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZya2lsYW55dHpmdGtwZmxscWpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMzQ5MTUsImV4cCI6MjA5MTgxMDkxNX0.D4BjNIYneCUkbiFnNR8MhsA9-yDYBYNR9Ha2AZemvXk";
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+/* Supabase Config loaded from config.js */
 
 /* ═══════ STATE & CONFIG ═══════ */
 var DEF_P = [
@@ -137,9 +134,18 @@ function runMigrations() {
 
     // 5. Clean up legacy densities map if it exists
     delete state.densities;
-    // 6. Fix numeric party IDs (Counterparty display issue)
+    // 6. Fix numeric party IDs and ensure mode exists
     if (state.trades) {
         state.trades.forEach(function (t) {
+            if (!t.mode) {
+                if (t.import_no || t.bl_no || t.boe_no || t.vessel) {
+                    t.mode = 'import';
+                } else if (t.link_purchase_id || t.hss_bl_no) {
+                    t.mode = 'hs_sale';
+                } else {
+                    t.mode = 'local';
+                }
+            }
             const isNumeric = typeof t.party === 'number' || (typeof t.party === 'string' && t.party.trim() !== "" && !isNaN(t.party));
             if (isNumeric) {
                 const id = parseInt(t.party);
@@ -164,12 +170,6 @@ function runMigrations() {
 var isTableMissing = false;
 async function saveState(force = false) {
     if (force) isTableMissing = false;
-    if (isTableMissing) return;
-    const syncBadge = document.getElementById('sync-status-badge');
-    if (syncBadge) {
-        syncBadge.textContent = 'SYNCING...';
-        syncBadge.style.color = 'var(--gold2)';
-    }
     try {
         // 1. Save to Primary Local (Immediate Cache)
         localStorage.setItem('murji_oil_v12', JSON.stringify(state));
@@ -184,6 +184,13 @@ async function saveState(force = false) {
         if (!auth.session && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
             alert('CRITICAL: Storage Limit Exceeded!\n\nYour uploaded documents are too large for the browser to save (Max 5MB).\n\nPlease LOGIN to Cloud to use unlimited storage.');
         }
+    }
+
+    if (isTableMissing) return;
+    const syncBadge = document.getElementById('sync-status-badge');
+    if (syncBadge) {
+        syncBadge.textContent = 'SYNCING...';
+        syncBadge.style.color = 'var(--gold2)';
     }
 
     // Save to Cloud (Background Sync)

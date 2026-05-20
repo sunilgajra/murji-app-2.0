@@ -9,26 +9,57 @@ var activeShipDocItem = null;
 let lastCurrency = 'USD';
 
 function renderTradesTable() {
-    document.getElementById('tradesTable').innerHTML = state.trades.slice().reverse().map(function (t) {
-        var modeLabel = '';
-        if (t.type === 'Buy') modeLabel = t.mode === 'import' ? 'Import' : 'Local';
-        else modeLabel = t.mode === 'hs_sale' ? 'HS Sale' : 'Local';
+    var searchEl = document.getElementById('tradeSearch');
+    var q = searchEl ? searchEl.value.toLowerCase() : '';
+    var typeFilterEl = document.getElementById('tradeTypeFilter');
+    var typeFilter = typeFilterEl ? typeFilterEl.value : 'all';
+    var modeFilterEl = document.getElementById('tradeModeFilter');
+    var modeFilter = modeFilterEl ? modeFilterEl.value : 'all';
 
-        var modeInfo = ' <small>(' + modeLabel + ')</small>';
-        var displayQty = t.raw_qty !== undefined ? t.raw_qty : t.vol;
-        var unitSuffix = t.unit ? ' ' + t.unit : ' L';
-        var hasShipDocs = t.ship_docs ? (Array.isArray(t.ship_docs) ? t.ship_docs.length > 0 : Object.keys(t.ship_docs).length > 0) : false;
-        var hasDocs = (t.docs && t.docs.length > 0) || hasShipDocs;
-        var boeBadge = t.boe_no ? ' <span class="badge badge-blue" style="font-size:9px; padding:1px 4px;" title="BOE: ' + t.boe_no + '">BOE</span>' : '';
-        var importBadge = t.import_no ? ' <span class="badge" style="font-size:9px; padding:1px 4px; background:#6366f1; color:#fff;" title="Import No: ' + t.import_no + '">' + t.import_no + '</span>' : '';
-        var activeBlNo = t.bl_no || t.hss_bl_no;
-        var blBadge = activeBlNo ? ' <span class="badge" style="font-size:9px; padding:1px 4px; background:var(--surface2); color:var(--text); border:1px solid var(--border);" title="BL No: ' + activeBlNo + '">BL: ' + activeBlNo + '</span>' : '';
-        var docBadge = hasDocs ? ' <span title="Documents attached" style="color:var(--gold2)">&#x1F4CE;</span>' : '';
+    document.getElementById('tradesTable').innerHTML = state.trades.slice().reverse()
+        .filter(function (t) {
+            if (typeFilter !== 'all' && t.type !== typeFilter) return false;
+            if (modeFilter !== 'all' && t.mode !== modeFilter) return false;
+            if (q) {
+                var modeLabel = '';
+                if (t.type === 'Buy') modeLabel = t.mode === 'import' ? 'Import' : 'Local';
+                else modeLabel = t.mode === 'hs_sale' ? 'HS Sale' : 'Local';
 
-        const moveBtn = t.mode === 'import' ? `<button class="btn btn-blue btn-sm" onclick="openMoveToYardModal(${t.id})" title="Move to Yard">&#x1F69A;</button>` : '';
+                var product = t.product ? t.product.toLowerCase() : '';
+                var party = t.party ? t.party.toLowerCase() : '';
+                var date = t.date ? t.date.toLowerCase() : '';
+                var blNo = t.bl_no ? t.bl_no.toLowerCase() : '';
+                var boeNo = t.boe_no ? t.boe_no.toLowerCase() : '';
 
-        return '<tr><td class="mono">' + t.date + '</td><td><span class="badge ' + (t.type === 'Buy' ? 'badge-blue' : 'badge-green') + '">' + t.type + '</span>' + modeInfo + importBadge + blBadge + boeBadge + docBadge + '</td><td>' + escH(t.product) + '</td><td>' + escH(t.party) + '</td><td class="mono">' + fmtN(displayQty) + unitSuffix + '</td><td class="mono">' + fmt(t.price) + '</td><td class="mono">' + fmt(displayQty * t.price) + '</td><td><div style="display:flex;gap:4px"><button class="btn btn-primary btn-sm" onclick="editTrade(' + t.id + ')" title="Edit">&#x270F;</button><button class="btn btn-ghost btn-sm" onclick="printTradeReceipt(' + t.id + ')" title="Print">&#x1F5B6;</button>' + (t.mode === 'import' ? '<button class="btn btn-teal btn-sm" onclick="generateLandedCostReport(' + t.id + ')" title="Landed Cost Report">&#x1F4CA;</button>' : '') + moveBtn + '<button class="btn btn-danger btn-sm" onclick="deleteItem(\'trades\',' + t.id + ')" title="Delete">&#x2715;</button></div></td></tr>';
-    }).join('');
+                return product.indexOf(q) >= 0 ||
+                       party.indexOf(q) >= 0 ||
+                       date.indexOf(q) >= 0 ||
+                       modeLabel.toLowerCase().indexOf(q) >= 0 ||
+                       blNo.indexOf(q) >= 0 ||
+                       boeNo.indexOf(q) >= 0;
+            }
+            return true;
+        })
+        .map(function (t) {
+            var modeLabel = '';
+            if (t.type === 'Buy') modeLabel = t.mode === 'import' ? 'Import' : 'Local';
+            else modeLabel = t.mode === 'hs_sale' ? 'HS Sale' : 'Local';
+
+            var modeInfo = ' <small>(' + modeLabel + ')</small>';
+            var displayQty = t.raw_qty !== undefined ? t.raw_qty : t.vol;
+            var unitSuffix = t.unit ? ' ' + t.unit : ' L';
+            var hasShipDocs = t.ship_docs ? (Array.isArray(t.ship_docs) ? t.ship_docs.length > 0 : Object.keys(t.ship_docs).length > 0) : false;
+            var hasDocs = (t.docs && t.docs.length > 0) || hasShipDocs;
+            var boeBadge = t.boe_no ? ' <span class="badge badge-blue" style="font-size:9px; padding:1px 4px;" title="BOE: ' + t.boe_no + '">BOE</span>' : '';
+            var importBadge = t.import_no ? ' <span class="badge" style="font-size:9px; padding:1px 4px; background:#6366f1; color:#fff;" title="Import No: ' + t.import_no + '">' + t.import_no + '</span>' : '';
+            var activeBlNo = t.bl_no || t.hss_bl_no;
+            var blBadge = activeBlNo ? ' <span class="badge" style="font-size:9px; padding:1px 4px; background:var(--surface2); color:var(--text); border:1px solid var(--border);" title="BL No: ' + activeBlNo + '">BL: ' + activeBlNo + '</span>' : '';
+            var docBadge = hasDocs ? ' <span title="Documents attached" style="color:var(--gold2)">&#x1F4CE;</span>' : '';
+
+            const moveBtn = t.mode === 'import' ? `<button class="btn btn-blue btn-sm" onclick="openMoveToYardModal(${t.id})" title="Move to Yard">&#x1F69A;</button>` : '';
+
+            return '<tr><td class="mono">' + t.date + '</td><td><span class="badge ' + (t.type === 'Buy' ? 'badge-blue' : 'badge-green') + '">' + t.type + '</span>' + modeInfo + importBadge + blBadge + boeBadge + docBadge + '</td><td>' + escH(t.product) + '</td><td>' + escH(t.party) + '</td><td class="mono">' + fmtN(displayQty) + unitSuffix + '</td><td class="mono">' + fmt(t.price) + '</td><td class="mono">' + fmt(displayQty * t.price) + '</td><td><div style="display:flex;gap:4px"><button class="btn btn-primary btn-sm" onclick="editTrade(' + t.id + ')" title="Edit">&#x270F;</button><button class="btn btn-ghost btn-sm" onclick="printTradeReceipt(' + t.id + ')" title="Print">&#x1F5B6;</button>' + (t.mode === 'import' ? '<button class="btn btn-teal btn-sm" onclick="generateLandedCostReport(' + t.id + ')" title="Landed Cost Report">&#x1F4CA;</button>' : '') + moveBtn + '<button class="btn btn-danger btn-sm" onclick="deleteItem(\'trades\',' + t.id + ')" title="Delete">&#x2715;</button></div></td></tr>';
+        }).join('');
 }
 
 /* ═══════ UNLOADING TO YARD / QUALITY CONTROL ═══════ */
@@ -2588,7 +2619,7 @@ function toggleTradeDetailFields() {
     var type = document.getElementById('tr-type').value;
     var mode = document.getElementById('tr-mode').value;
     var imp = document.querySelector('.tr-import-fields');
-    var loc = document.querySelector('.tr-local-fields');
+    var locs = document.querySelectorAll('.tr-local-fields');
     var linkGrp = document.getElementById('tr-link-group');
     var srcGrp = document.getElementById('tr-source-loc-group');
     var destGrp = document.getElementById('tr-dest-loc-group');
@@ -2607,7 +2638,7 @@ function toggleTradeDetailFields() {
 
     if (type === 'Move') {
         if (imp) imp.style.display = 'none';
-        if (loc) loc.style.display = 'grid';
+        locs.forEach(function (el) { el.style.display = 'grid'; });
         if (linkGrp) linkGrp.style.display = 'none';
         document.getElementById('tr-payments-section').style.display = 'none';
         return;
@@ -2617,20 +2648,20 @@ function toggleTradeDetailFields() {
         if (linkGrp) linkGrp.style.display = 'none';
         if (mode === 'import') {
             if (imp) imp.style.display = 'grid';
-            if (loc) loc.style.display = 'none';
+            locs.forEach(function (el) { el.style.display = 'none'; });
             document.getElementById('tr-payments-section').style.display = 'block';
             document.getElementById('tr-buyer-payments-section').style.display = 'none';
             calcImportTotal();
         } else {
             if (imp) imp.style.display = 'none';
-            if (loc) loc.style.display = 'grid';
+            locs.forEach(function (el) { el.style.display = 'grid'; });
             document.getElementById('tr-payments-section').style.display = 'block';
             document.getElementById('tr-buyer-payments-section').style.display = 'none';
         }
     } else {
         // Sell
         if (imp) imp.style.display = 'none';
-        if (loc) loc.style.display = (mode === 'local') ? 'grid' : 'none';
+        locs.forEach(function (el) { el.style.display = (mode === 'local') ? 'grid' : 'none'; });
         document.getElementById('tr-payments-section').style.display = 'none';
         document.getElementById('tr-buyer-payments-section').style.display = (mode === 'local') ? 'block' : 'none';
         document.getElementById('tr-deal-group').style.display = 'flex';
