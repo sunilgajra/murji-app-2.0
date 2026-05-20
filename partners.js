@@ -294,7 +294,7 @@ function openPartyStatementModal(partyType, partyId) {
                 '<td style="padding:10px; text-align:right;" class="mono">₹ ' + fNum(t.price) + '</td>' +
                 '<td style="padding:10px; text-align:right;" class="mono">₹ ' + fNum(totalVal) + '</td>' +
                 '<td style="padding:10px; text-align:left;"><span class="badge badge-gray">' + t.mode.toUpperCase() + '</span></td>' +
-                '<td style="padding:10px; text-align:center;"><button class="btn btn-sm btn-ghost" onclick="printTradeReceipt(' + t.id + ')">&#x1F5B6; Print Deal</button></td>' +
+                '<td style="padding:10px; text-align:center; display:flex; gap:6px; justify-content:center;"><button class="btn btn-sm btn-ghost" onclick="printTradeReceipt(' + t.id + ')">&#x1F5B6; Print Deal</button><button class="btn btn-sm btn-ghost" onclick="printTradeInvoice(' + t.id + ')">&#x1F4C4; Invoice</button></td>' +
                 '</tr>';
         }).join('');
     }
