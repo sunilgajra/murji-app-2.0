@@ -30,12 +30,20 @@ function renderTradesTable() {
                 var date = t.date ? t.date.toLowerCase() : '';
                 var blNo = t.bl_no ? t.bl_no.toLowerCase() : '';
                 var boeNo = t.boe_no ? t.boe_no.toLowerCase() : '';
+                var invNo = (t.inv_no || '').toLowerCase();
+                var lrNo = (t.lr_no || '').toLowerCase();
+                var veh = (t.veh || '').toLowerCase();
+                var shipTo = (t.ship_to || '').toLowerCase();
 
                 return product.indexOf(q) >= 0 ||
                        party.indexOf(q) >= 0 ||
                        date.indexOf(q) >= 0 ||
                        modeLabel.toLowerCase().indexOf(q) >= 0 ||
                        blNo.indexOf(q) >= 0 ||
+                       invNo.indexOf(q) >= 0 ||
+                       lrNo.indexOf(q) >= 0 ||
+                       veh.indexOf(q) >= 0 ||
+                       shipTo.indexOf(q) >= 0 ||
                        boeNo.indexOf(q) >= 0;
             }
             return true;
@@ -59,9 +67,13 @@ function renderTradesTable() {
             var dealRateVal = (t.mode === 'local' && t.deal_rate) ? '₹ ' + fmt(t.deal_rate) + ' / KG' : '—';
             var yChargesVal = (t.mode === 'local' && t.y_charges !== undefined) ? '₹ ' + fmt(t.y_charges) : '—';
 
+            var invNoDisplay = t.mode === 'local' ? (t.inv_no || '—') : (t.import_no || t.bl_no || '—');
+            var vehLrDisplay = '<div style="font-size:11px;">' + escH(t.veh || '—') + '</div>' + 
+                               (t.lr_no ? '<div style="font-size:10px; color:var(--muted)">LR: ' + escH(t.lr_no) + '</div>' : '');
+
             const moveBtn = t.mode === 'import' ? `<button class="btn btn-blue btn-sm" onclick="openMoveToYardModal(${t.id})" title="Move to Yard">&#x1F69A;</button>` : '';
 
-            return '<tr><td class="mono">' + t.date + '</td><td><span class="badge ' + (t.type === 'Buy' ? 'badge-blue' : 'badge-green') + '">' + t.type + '</span>' + modeInfo + importBadge + blBadge + boeBadge + docBadge + '</td><td>' + escH(t.product) + '</td><td>' + escH(t.party) + '</td><td class="mono">' + fmtN(displayQty) + unitSuffix + '</td><td class="mono">' + fmt(t.price) + '</td><td class="mono">' + fmt(displayQty * t.price) + '</td><td class="mono">' + dealRateVal + '</td><td class="mono">' + yChargesVal + '</td><td><div style="display:flex;gap:4px"><button class="btn btn-primary btn-sm" onclick="editTrade(' + t.id + ')" title="Edit">&#x270F;</button><button class="btn btn-ghost btn-sm" onclick="printTradeReceipt(' + t.id + ')" title="Print">&#x1F5B6;</button><button class="btn btn-ghost btn-sm" onclick="printTradeInvoice(' + t.id + ')" title="Tax Invoice">&#x1F4C4;</button>' + (t.mode === 'import' ? '<button class="btn btn-teal btn-sm" onclick="generateLandedCostReport(' + t.id + ')" title="Landed Cost Report">&#x1F4CA;</button>' : '') + moveBtn + '<button class="btn btn-danger btn-sm" onclick="deleteItem(\'trades\',' + t.id + ')" title="Delete">&#x2715;</button></div></td></tr>';
+            return '<tr><td class="mono">' + t.date + '</td><td><span class="badge ' + (t.type === 'Buy' ? 'badge-blue' : 'badge-green') + '">' + t.type + '</span>' + modeInfo + importBadge + blBadge + boeBadge + docBadge + '</td><td>' + escH(t.product) + '</td><td>' + escH(t.party) + (t.ship_to ? '<div style="font-size:9px;color:var(--muted)">Ship to: ' + escH(t.ship_to) + '</div>' : '') + '</td><td class="mono">' + fmtN(displayQty) + unitSuffix + '</td><td class="mono">' + fmt(t.price) + '</td><td class="mono">' + fmt(displayQty * t.price) + '</td><td class="mono">' + dealRateVal + '</td><td class="mono">' + yChargesVal + '</td><td class="mono">' + escH(invNoDisplay) + '</td><td>' + vehLrDisplay + '</td><td><div style="display:flex;gap:4px"><button class="btn btn-primary btn-sm" onclick="editTrade(' + t.id + ')" title="Edit">&#x270F;</button><button class="btn btn-ghost btn-sm" onclick="printTradeReceipt(' + t.id + ')" title="Print">&#x1F5B6;</button><button class="btn btn-ghost btn-sm" onclick="printTradeInvoice(' + t.id + ')" title="Tax Invoice">&#x1F4C4;</button>' + (t.mode === 'import' ? '<button class="btn btn-teal btn-sm" onclick="generateLandedCostReport(' + t.id + ')" title="Landed Cost Report">&#x1F4CA;</button>' : '') + moveBtn + '<button class="btn btn-danger btn-sm" onclick="deleteItem(\'trades\',' + t.id + ')" title="Delete">&#x2715;</button></div></td></tr>';
         }).join('');
 }
 
@@ -952,6 +964,9 @@ function editTrade(id) {
     } else {
         document.getElementById('tr-party').value = t.party;
     }
+    if (document.getElementById('tr-ship-to-select')) {
+        document.getElementById('tr-ship-to-select').value = t.ship_to || '';
+    }
     document.getElementById('tr-vol').value = t.raw_qty !== undefined ? t.raw_qty : t.vol;
     document.getElementById('tr-unit').value = t.unit || 'LITRE';
     document.getElementById('tr-density').value = t.density;
@@ -1004,6 +1019,9 @@ function editTrade(id) {
         document.getElementById('tr-inv-no').value = t.inv_no || '';
         document.getElementById('tr-gst').value = t.gst || '';
         document.getElementById('tr-veh').value = t.veh || '';
+        if (document.getElementById('tr-lr-no')) {
+            document.getElementById('tr-lr-no').value = t.lr_no || '';
+        }
         document.getElementById('tr-deal-rate').value = t.deal_rate || '';
         document.getElementById('tr-tax-rate').value = t.tax_rate || '';
         document.getElementById('tr-tax-pct').value = t.tax_pct !== undefined ? t.tax_pct : 18;
@@ -1128,7 +1146,8 @@ function addTrade() {
         deal_amt: getTradeQtyKG() * (parseFloat(document.getElementById('tr-deal-rate') ? document.getElementById('tr-deal-rate').value : 0) || 0),
         y_charges: (getTradeQtyKG() * (parseFloat(document.getElementById('tr-deal-rate') ? document.getElementById('tr-deal-rate').value : 0) || 0)) -
                    (getTradeQtyKG() * (parseFloat(document.getElementById('tr-tax-rate') ? document.getElementById('tr-tax-rate').value : 0) || 0) *
-                   (1 + (parseFloat(document.getElementById('tr-tax-pct') ? document.getElementById('tr-tax-pct').value : 18) || 18) / 100))
+                   (1 + (parseFloat(document.getElementById('tr-tax-pct') ? document.getElementById('tr-tax-pct').value : 18) || 18) / 100)),
+        ship_to: document.getElementById('tr-ship-to-select') ? document.getElementById('tr-ship-to-select').value : ''
     };
 
     if (type === 'Sell' && mode === 'hs_sale') trade.link_purchase_id = document.getElementById('tr-link-purchase').value;
@@ -1137,6 +1156,7 @@ function addTrade() {
         trade.inv_no = document.getElementById('tr-inv-no').value;
         trade.gst = document.getElementById('tr-gst').value;
         trade.veh = document.getElementById('tr-veh').value;
+        trade.lr_no = document.getElementById('tr-lr-no') ? document.getElementById('tr-lr-no').value : '';
     }
 
     if (type === 'Buy') {
@@ -1221,7 +1241,7 @@ function resetTradeForm() {
     document.getElementById('btn-scan-ai').style.display = 'none';
     var btn = document.querySelector('button[onclick="addTrade()"]');
     if (btn) { btn.innerHTML = '&#x1F4B1; Record Trade'; btn.classList.remove('btn-blue'); }
-    ['tr-party', 'tr-vol', 'tr-price-local', 'tr-import-no', 'tr-bl-no', 'tr-vessel', 'tr-port-load', 'tr-port-dis', 'tr-ex-rate', 'tr-inv-no', 'tr-gst', 'tr-veh', 'tr-imp-rate', 'tr-total-for', 'tr-total-inr-shared', 'tr-agent', 'tr-gross-weight', 'tr-net-weight', 'tr-hs-code', 'tr-boe-no', 'tr-boe-date', 'tr-duty-amt', 'tr-boe-fine', 'tr-boe-penalty', 'tr-boe-interest', 'tr-containers', 'tr-storage-loc', 'tr-deal-rate', 'tr-tax-rate'].forEach(function (id) {
+    ['tr-party', 'tr-vol', 'tr-price-local', 'tr-import-no', 'tr-bl-no', 'tr-vessel', 'tr-port-load', 'tr-port-dis', 'tr-ex-rate', 'tr-inv-no', 'tr-gst', 'tr-veh', 'tr-lr-no', 'tr-ship-to-select', 'tr-imp-rate', 'tr-total-for', 'tr-total-inr-shared', 'tr-agent', 'tr-gross-weight', 'tr-net-weight', 'tr-hs-code', 'tr-boe-no', 'tr-boe-date', 'tr-duty-amt', 'tr-boe-fine', 'tr-boe-penalty', 'tr-boe-interest', 'tr-containers', 'tr-storage-loc', 'tr-deal-rate', 'tr-tax-rate'].forEach(function (id) {
         var el = document.getElementById(id); if (el) el.value = '';
     });
     if (document.getElementById('tr-tax-pct')) document.getElementById('tr-tax-pct').value = '18';
@@ -2483,6 +2503,12 @@ function populateTradeParties() {
         selectWrap.style.display = 'none';
         inputWrap.style.display = 'block';
     }
+
+    var shipToSel = document.getElementById('tr-ship-to-select');
+    if (shipToSel) {
+        shipToSel.innerHTML = '<option value="">-- Same as Party --</option>' +
+            (state.buyers || []).map(function (b) { return '<option value="' + escH(b.name) + '">' + escH(b.name) + '</option>'; }).join('');
+    }
 }
 
 function syncCustomsDutyToExpenses() {
@@ -3405,6 +3431,37 @@ function printTradeInvoice(tradeId) {
     var buyerState = t.type === 'Sell' ? partyState : 'Maharashtra';
     var buyerStateCode = t.type === 'Sell' ? partyStateCode : '27';
 
+    var consigneeName = buyerName;
+    var consigneeAddr = buyerAddr;
+    var consigneeGstin = buyerGstin;
+    var consigneeState = buyerState;
+    var consigneeStateCode = buyerStateCode;
+
+    if (t.ship_to) {
+        var cObj = (state.buyers || []).find(function(b) { return b.name === t.ship_to; });
+        if (cObj) {
+            consigneeName = cObj.name;
+            var cCity = cObj.city || 'Ahmedabad';
+            var cPhone = cObj.phone || '';
+            consigneeAddr = cCity + ', India';
+            consigneeGstin = cPhone.length >= 15 ? cPhone : '24CIVPS3974C1ZP';
+            
+            consigneeState = 'Gujarat';
+            consigneeStateCode = '24';
+            var cCityLower = cCity.toLowerCase();
+            if (cCityLower.includes('maharashtra') || cCityLower.includes('mumbai') || cCityLower.includes('navi mumbai') || cCityLower.includes('vashi') || cCityLower.includes('pune') || cCityLower.includes('nagpur')) {
+                consigneeState = 'Maharashtra';
+                consigneeStateCode = '27';
+            } else if (cCityLower.includes('rajasthan') || cCityLower.includes('jaipur')) {
+                consigneeState = 'Rajasthan';
+                consigneeStateCode = '08';
+            } else if (cCityLower.includes('delhi')) {
+                consigneeState = 'Delhi';
+                consigneeStateCode = '07';
+            }
+        }
+    }
+
     var isLocalTax = (sellerStateCode === buyerStateCode);
     var hsn = '27101971';
     var invoiceNo = t.inv_no || ('MRC/' + String(t.id).padStart(3, '0') + '/26-27');
@@ -3576,7 +3633,7 @@ function printTradeInvoice(tradeId) {
                                 </td>
                                 <td>
                                     <div style="font-size: 7px; color: #555;">Destination</div>
-                                    <div style="font-weight: bold; margin-top: 1px;">Ahmedabad</div>
+                                    <div style="font-weight: bold; margin-top: 1px;">${escH(t.delivery_dest || consigneeAddr.split(',')[0] || '—')}</div>
                                 </td>
                             </tr>
                             <tr>
@@ -3585,8 +3642,8 @@ function printTradeInvoice(tradeId) {
                                     <div style="font-weight: bold; margin-top: 1px;">${escH(t.veh || '—')}</div>
                                 </td>
                                 <td>
-                                    <div style="font-size: 7px; color: #555;">Terms of Delivery</div>
-                                    <div style="font-weight: bold; margin-top: 1px;">As per contract</div>
+                                    <div style="font-size: 7px; color: #555;">LR No. / Date</div>
+                                    <div style="font-weight: bold; margin-top: 1px;">${escH(t.lr_no || '—')}</div>
                                 </td>
                             </tr>
                         </table>
@@ -3596,10 +3653,10 @@ function printTradeInvoice(tradeId) {
                 <div class="flex-row">
                     <div class="col-left">
                         <div style="font-size:7.5px; color:#555; text-transform:uppercase; margin-bottom:2px;">Consignee (Ship to)</div>
-                        <div class="company-name">${escH(buyerName)}</div>
-                        <div style="font-size: 8.5px;">${escH(buyerAddr)}</div>
-                        <div style="margin-top: 6px; font-weight: bold; font-size: 8.5px;">GSTIN/UIN: ${buyerGstin}</div>
-                        <div style="font-size: 8.5px;">State Name: ${buyerState}, Code: ${buyerStateCode}</div>
+                        <div class="company-name">${escH(consigneeName)}</div>
+                        <div style="font-size: 8.5px;">${escH(consigneeAddr)}</div>
+                        <div style="margin-top: 6px; font-weight: bold; font-size: 8.5px;">GSTIN/UIN: ${consigneeGstin}</div>
+                        <div style="font-size: 8.5px;">State Name: ${consigneeState}, Code: ${consigneeStateCode}</div>
                     </div>
                     <div class="col-left" style="border-right: none;">
                         <div style="font-size:7.5px; color:#555; text-transform:uppercase; margin-bottom:2px;">Buyer (Bill to)</div>
