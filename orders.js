@@ -1,6 +1,32 @@
 /* ═══════ ORDERS MANAGER ═══════ */
 var editingOrderId = null;
 
+function toggleOrderPricingFields() {
+    var type = document.getElementById('ord-type').value;
+    var pricingDiv = document.getElementById('ord-sale-pricing');
+    if (pricingDiv) pricingDiv.style.display = (type === 'SALE') ? 'block' : 'none';
+}
+
+function calcOrderBreakdown() {
+    var qtyKG = parseFloat(document.getElementById('ord-kg').value) || 0;
+    var dealRate = parseFloat(document.getElementById('ord-deal-rate') ? document.getElementById('ord-deal-rate').value : 0) || 0;
+    var taxRate = parseFloat(document.getElementById('ord-tax-rate') ? document.getElementById('ord-tax-rate').value : 0) || 0;
+    var taxPct = parseFloat(document.getElementById('ord-tax-pct') ? document.getElementById('ord-tax-pct').value : 18) || 0;
+
+    var taxableAmt = qtyKG * taxRate;
+    var taxAmt = taxableAmt * taxPct / 100;
+    var tAmt = taxableAmt + taxAmt;
+    var dealAmt = qtyKG * dealRate;
+    var yChgs = dealAmt - tAmt;
+
+    var set = function(id, v) { var el = document.getElementById(id); if (el) el.textContent = '\u20B9 ' + fmt(v); };
+    set('ord-calc-taxable', taxableAmt);
+    set('ord-calc-tax', taxAmt);
+    set('ord-calc-tamt', tAmt);
+    set('ord-calc-deal', dealAmt);
+    set('ord-calc-ychgs', yChgs);
+}
+
 function renderOrdersTable() {
     document.getElementById('ordersTable').innerHTML = (state.orders || []).slice().reverse().map(function (o) {
         const isKG = o.unit === 'KG';
@@ -9,7 +35,6 @@ function renderOrdersTable() {
         const otherUnit = isKG ? 'LTRS' : 'KG';
         const mainUnit = isKG ? 'KG' : 'LTRS';
 
-        // Final values for display
         const displayQty = isKG ? (o.qty_kg || (o.qty * den)) : o.qty;
         const displayRate = isKG ? (o.price_kg || (o.price / den)) : o.price;
         const secondaryRate = isKG ? o.price : (o.price_kg || (o.price / den));
@@ -17,14 +42,19 @@ function renderOrdersTable() {
         const mainRateVal = parseFloat(displayRate) || 0;
         const otherRateVal = parseFloat(secondaryRate) || 0;
 
+        const dealRateCell = o.deal_rate ? ('\u20B9 ' + parseFloat(o.deal_rate).toFixed(2) + '/KG') : '-';
+        const yChgsCell = (o.y_charges !== undefined && o.y_charges !== null) ? fmt(o.y_charges) : '-';
+
         return '<tr>' +
             '<td class="mono">' + o.id + '</td>' +
             '<td><span class="badge ' + (o.type === 'PURCHASE' ? 'badge-blue' : 'badge-green') + '">' + (o.type || 'SALE') + '</span></td>' +
             '<td><b>' + escH(o.customer) + '</b></td>' +
             '<td>' + escH(o.product) + '</td>' +
             '<td class="mono"><div>' + fmtN(displayQty.toFixed(1)) + ' ' + mainUnit + '</div><small style="color:var(--muted)">' + fmtN(otherQty.toFixed(1)) + ' ' + otherUnit + '</small></td>' +
-            '<td class="mono"><div>₹ ' + mainRateVal.toFixed(2) + ' <small style="color:var(--muted)">/ ' + mainUnit + '</small></div><small style="color:var(--muted)">₹ ' + otherRateVal.toFixed(2) + ' / ' + otherUnit + '</small></td>' +
+            '<td class="mono"><div>\u20B9 ' + mainRateVal.toFixed(2) + ' <small style="color:var(--muted)">/ ' + mainUnit + '</small></div><small style="color:var(--muted)">\u20B9 ' + otherRateVal.toFixed(2) + ' / ' + otherUnit + '</small></td>' +
             '<td class="mono"><b>' + fmt(displayQty * displayRate) + '</b></td>' +
+            '<td class="mono" style="color:var(--green); font-weight:600;">' + dealRateCell + '</td>' +
+            '<td class="mono" style="color:var(--gold2); font-weight:600;">' + yChgsCell + '</td>' +
             '<td>' + statusBadge(o.status) + '</td>' +
             '<td class="mono">' + o.due + '</td>' +
             '<td style="display:flex;gap:4px">' +
@@ -34,7 +64,7 @@ function renderOrdersTable() {
             '<option ' + (o.status === 'Delivered' ? 'selected' : '') + '>Delivered</option>' +
             '</select>' +
             '<button class="btn btn-sm btn-ghost" onclick="editOrder(\'' + o.id + '\')" style="color:var(--teal)">&#x270F;</button>' +
-            '<button class="btn btn-danger btn-sm" onclick="deleteOrder(\'' + o.id + '\')">&#x2715;</button>' +
+            '<button class="btn btn-danger btn-sm" onclick="deleteOrder(\'' + o.id + '\')">&times;</button>' +
             '</td></tr>';
     }).join('');
 }
@@ -51,6 +81,7 @@ function editOrder(id) {
     editingOrderId = id;
 
     document.getElementById('ord-type').value = o.type || 'SALE';
+    toggleOrderPricingFields();
     populateOrderParties();
     document.getElementById('ord-customer').value = o.customer;
     document.getElementById('ord-product').value = o.product;
@@ -63,8 +94,13 @@ function editOrder(id) {
     document.getElementById('ord-due').value = o.due || '';
     document.getElementById('ord-priority').value = o.priority || 'Normal';
 
+    if (document.getElementById('ord-deal-rate')) document.getElementById('ord-deal-rate').value = o.deal_rate || '';
+    if (document.getElementById('ord-tax-rate')) document.getElementById('ord-tax-rate').value = o.tax_rate || '';
+    if (document.getElementById('ord-tax-pct')) document.getElementById('ord-tax-pct').value = o.tax_pct || 18;
+
     dualCalc('ord', 'vol');
     priceCalc('ord', 'perL');
+    calcOrderBreakdown();
 
     const btn = document.querySelector('button[onclick="addOrder()"]');
     if (btn) {
@@ -105,7 +141,15 @@ function addOrder() {
         due: document.getElementById('ord-due').value,
         priority: document.getElementById('ord-priority').value,
         status: 'Pending',
-        terms: 'Immediate'
+        terms: 'Immediate',
+        deal_rate: parseFloat(document.getElementById('ord-deal-rate') ? document.getElementById('ord-deal-rate').value : 0) || 0,
+        tax_rate: parseFloat(document.getElementById('ord-tax-rate') ? document.getElementById('ord-tax-rate').value : 0) || 0,
+        tax_pct: parseFloat(document.getElementById('ord-tax-pct') ? document.getElementById('ord-tax-pct').value : 18) || 18,
+        taxable_amt: qtyKG * (parseFloat(document.getElementById('ord-tax-rate') ? document.getElementById('ord-tax-rate').value : 0) || 0),
+        deal_amt: qtyKG * (parseFloat(document.getElementById('ord-deal-rate') ? document.getElementById('ord-deal-rate').value : 0) || 0),
+        y_charges: (qtyKG * (parseFloat(document.getElementById('ord-deal-rate') ? document.getElementById('ord-deal-rate').value : 0) || 0)) -
+                   (qtyKG * (parseFloat(document.getElementById('ord-tax-rate') ? document.getElementById('ord-tax-rate').value : 0) || 0) *
+                   (1 + (parseFloat(document.getElementById('ord-tax-pct') ? document.getElementById('ord-tax-pct').value : 18) || 18) / 100))
     };
 
     if (editingOrderId) {
@@ -131,10 +175,13 @@ function addOrder() {
     saveState(); renderOrdersTable(); renderActiveOrders(); populateSelects();
 
     // Clear form
-    ['ord-customer', 'ord-qty', 'ord-kg', 'ord-price', 'ord-price-kg', 'ord-due'].forEach(id => {
+    ['ord-customer', 'ord-qty', 'ord-kg', 'ord-price', 'ord-price-kg', 'ord-due',
+     'ord-deal-rate', 'ord-tax-rate'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
     });
+    if (document.getElementById('ord-tax-pct')) document.getElementById('ord-tax-pct').value = '18';
+    calcOrderBreakdown();
 }
 
 function updateOrderStatus(id, s) {
@@ -333,7 +380,8 @@ function handleChallanLinkChange() {
 (function (w) {
     const exports = {
         renderOrdersTable, editOrder, addOrder, updateOrderStatus, populateOrderParties, deleteOrder,
-        toggleChallanFields, renderChallansTable, addChallan, deleteChallan, populateChallanLinks, handleChallanLinkChange
+        toggleChallanFields, renderChallansTable, addChallan, deleteChallan, populateChallanLinks, handleChallanLinkChange,
+        calcOrderBreakdown, toggleOrderPricingFields
     };
     for (const key in exports) {
         if (typeof exports[key] === 'function') {
