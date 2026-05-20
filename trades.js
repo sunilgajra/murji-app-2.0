@@ -2123,20 +2123,32 @@ function loadDealDetails() {
 function populateSourceLocations() {
     const sel = document.getElementById('tr-source-loc');
     const product = document.getElementById('tr-product').value;
-    if (!sel || !product) return;
+    if (!sel) return;
 
-    const locations = (state.inventory || [])
-        .filter(i => i.product === product)
-        .map(i => i.location);
+    // Build stock map: { tankId -> totalVolume } for the selected product
+    const stockMap = {};
+    (state.inventory || []).forEach(i => {
+        if (!i.location) return;
+        if (product && i.product !== product) return;
+        stockMap[i.location] = (stockMap[i.location] || 0) + i.vol;
+    });
 
-    const uniqueLocs = [...new Set(locations)].filter(l => l);
+    let html = '<option value="">-- Select Source --</option>';
 
-    sel.innerHTML = '<option value="">-- Select Source --</option>' +
-        uniqueLocs.map(l => {
-            const tank = state.tanks.find(t => t.id === l);
-            const label = tank ? (tank.name + ' (' + tank.location + ')') : l;
-            return '<option value="' + l + '">' + escH(label) + '</option>';
-        }).join('');
+    // Group tanks by yard (same as storage-loc dropdown)
+    const yards = [...new Set((state.tanks || []).map(t => t.location).filter(Boolean))];
+    yards.forEach(y => {
+        html += '<optgroup label="' + escH(y) + '">';
+        (state.tanks || []).filter(t => t.location === y).forEach(t => {
+            const avail = stockMap[t.id] || 0;
+            const availKg = avail * (parseFloat(document.getElementById('tr-density') ? document.getElementById('tr-density').value : 0) || 0.850);
+            const stockInfo = avail > 0 ? fmtN(availKg.toFixed(0)) + ' KG avail' : 'EMPTY';
+            html += '<option value="' + t.id + '">' + escH(t.name) + ' — ' + stockInfo + '</option>';
+        });
+        html += '</optgroup>';
+    });
+
+    sel.innerHTML = html;
 }
 
 function checkSourceStock() {
@@ -2144,19 +2156,26 @@ function checkSourceStock() {
     const product = document.getElementById('tr-product').value;
     const infoEl = document.getElementById('tr-avail-stock');
 
-    if (!loc || !product) {
-        infoEl.style.display = 'none';
+    if (!loc) {
+        if (infoEl) infoEl.style.display = 'none';
         return;
     }
 
-    const relevant = state.inventory.filter(i => i.product === product && i.location === loc);
-    const total = relevant.reduce((sum, i) => sum + i.vol, 0);
+    const relevant = (state.inventory || []).filter(i =>
+        i.location === loc && (!product || i.product === product)
+    );
+    const totalVol = relevant.reduce((sum, i) => sum + i.vol, 0);
+    const den = parseFloat(document.getElementById('tr-density').value) || 0.850;
+    const totalKg = totalVol * den;
 
-    infoEl.textContent = 'Avail: ' + fmtN(total.toFixed(0)) + ' L';
-    infoEl.style.display = 'block';
+    const tank = (state.tanks || []).find(t => t.id === loc);
+    const tankLabel = tank ? (tank.name + ' @ ' + tank.location) : loc;
 
-    if (total <= 0) infoEl.style.color = 'var(--red)';
-    else infoEl.style.color = 'var(--teal)';
+    if (infoEl) {
+        infoEl.textContent = tankLabel + ' — ' + fmtN(totalKg.toFixed(0)) + ' KG / ' + fmtN(totalVol.toFixed(0)) + ' L available';
+        infoEl.style.display = 'block';
+        infoEl.style.color = totalVol <= 0 ? 'var(--red)' : 'var(--teal)';
+    }
 }
 
 function syncWeightToQty() {
