@@ -653,12 +653,21 @@ function printOrder(orderId) {
                     </tbody>
                 </table>
 
-                <div style="padding: 6px; border-bottom: none;">
-                    <div style="font-size: 7.5px; color: #555; text-transform: uppercase;">Amount Chargeable (in words)</div>
-                    <div style="font-weight: bold; font-size: 9px; margin-top: 2px;">INR ${invoiceWords}</div>
-                    <div style="text-align: right; font-style: italic; font-weight: bold; margin-top: 8px;">E. & O.E</div>
+                <div style="padding: 6px; border-bottom: 1.5px solid #000; display: flex; justify-content: space-between;">
+                    <div>
+                        <div style="font-size: 7.5px; color: #555; text-transform: uppercase;">Amount Chargeable (in words)</div>
+                        <div style="font-weight: bold; font-size: 9px; margin-top: 2px;">INR ${invoiceWords}</div>
+                    </div>
+                    <div style="text-align: right; font-style: italic; font-weight: bold;">E. & O.E</div>
+                </div>
+                <div style="height: 100px; position: relative;">
+                    <div style="position: absolute; bottom: 6px; right: 6px; text-align: right;">
+                        <div style="font-size: 9px; font-weight: bold; margin-bottom: 40px;">for ${escH(myName)}</div>
+                        <div style="font-weight: bold; font-size: 9px;">Authorised Signatory</div>
+                    </div>
                 </div>
             </div>
+            <div style="text-align:center; margin-top:10px; font-size:9px; color:#000;">This is a Computer Generated Document</div>
         </body>
         </html>
     `;
