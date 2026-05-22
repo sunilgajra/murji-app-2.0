@@ -3806,15 +3806,15 @@ function printTradeInvoice(tradeId) {
                 <div class="flex-row" style="border-bottom: none;">
                     <div class="col-left" style="font-size: 8px; line-height: 1.4;">
                         <div style="font-weight: bold; font-size: 8.5px; margin-bottom: 4px; text-transform: uppercase;">Company's Bank Details</div>
-                        <div>Bank Name: <span style="font-weight: bold;">HDFC BANK OD A/C</span></div>
-                        <div>A/c No.: <span style="font-weight: bold;">50200115504705</span></div>
-                        <div>Branch & IFSC Code: <span style="font-weight: bold;">VASHI & HDFC0000041</span></div>
+                        <div>Bank Name: <span style="font-weight: bold;">${co.bankName ? escH(co.bankName) : 'HDFC BANK OD A/C'}</span></div>
+                        <div>A/c No.: <span style="font-weight: bold;">${co.bankAc ? escH(co.bankAc) : '50200115504705'}</span></div>
+                        <div>Branch & IFSC Code: <span style="font-weight: bold;">${(co.bankBranch || co.bankIfsc) ? escH((co.bankBranch||'') + (co.bankBranch && co.bankIfsc ? ' & ' : '') + (co.bankIfsc||'')) : 'VASHI & HDFC0000041'}</span></div>
                         <div style="margin-top: 6px; font-style: italic; color: #555; font-size: 7.5px; line-height: 1.2;">
                             Declaration: We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.
                         </div>
                     </div>
                     <div class="col-right" style="text-align: right; padding: 6px; display: flex; flex-direction: column; justify-content: space-between;">
-                        <div style="font-size: 8px;">For <span style="font-weight: bold; text-transform: uppercase;">MURJI RAVJI AND COMPANY</span></div>
+                        <div style="font-size: 8px;">For <span style="font-weight: bold; text-transform: uppercase;">${escH(myName)}</span></div>
                         <div style="font-weight: bold; font-size: 8.5px; margin-top: 45px;">Authorized Signatory</div>
                     </div>
                 </div>
