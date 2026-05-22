@@ -4,7 +4,11 @@ var editingOrderId = null;
 function toggleOrderPricingFields() {
     var type = document.getElementById('ord-type').value;
     var pricingDiv = document.getElementById('ord-sale-pricing');
-    if (pricingDiv) pricingDiv.style.display = (type === 'SALE') ? 'block' : 'none';
+    var titleDiv = document.getElementById('ord-pricing-title');
+    if (pricingDiv) pricingDiv.style.display = 'block';
+    if (titleDiv) {
+        titleDiv.innerHTML = (type === 'PURCHASE') ? '&#x1F4CA; Purchase Pricing Breakdown' : '&#x1F4CA; Sale Pricing Breakdown';
+    }
 }
 
 function calcOrderBreakdown() {
