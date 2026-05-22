@@ -64,6 +64,7 @@ function renderOrdersTable() {
             '<option ' + (o.status === 'Delivered' ? 'selected' : '') + '>Delivered</option>' +
             '</select>' +
             '<button class="btn btn-sm btn-ghost" onclick="editOrder(\'' + o.id + '\')" style="color:var(--teal)">&#x270F;</button>' +
+            '<button class="btn btn-sm btn-ghost" onclick="printOrder(\'' + o.id + '\')" style="color:var(--blue)">&#128424;</button>' +
             '<button class="btn btn-danger btn-sm" onclick="deleteOrder(\'' + o.id + '\')">&times;</button>' +
             '</td></tr>';
     }).join('');
@@ -376,12 +377,153 @@ function handleChallanLinkChange() {
     }
 }
 
+function printOrder(orderId) {
+    const o = state.orders.find(x => x.id === orderId);
+    if (!o) return toast('Order not found', true);
+
+    const co = (state && state.company) ? state.company : {};
+    const myName = co.name || 'MURJI RAVJI & COMPANY';
+    const myAddr = co.address || 'SHOP NO 418 PLOT NO D/88 SECTOR 12 PRIME MALL KHARGHAR, NAVI MUMBAI';
+    const myGstin = co.gstin || '27AAAHM6511F1Z2';
+    const myState = co.state || 'Maharashtra';
+    const myStateCode = co.stateCode || '27';
+    const myEmail = co.email || 'info@murjiravji.com';
+    const myPhone = co.phone || '9876543210';
+
+    var docTitle = o.type === 'PURCHASE' ? 'PURCHASE ORDER' : 'SALES ORDER';
+    var partyTitle = o.type === 'PURCHASE' ? 'To (Supplier):' : 'To (Customer):';
+
+    var dateParts = (o.date || '').split('-');
+    var formattedDate = o.date;
+    if (dateParts.length === 3) {
+        var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        var monthIndex = parseInt(dateParts[1]) - 1;
+        formattedDate = dateParts[2] + '-' + (months[monthIndex] || dateParts[1]) + '-' + dateParts[0].substring(2);
+    }
+
+    var isKG = o.unit === 'KG';
+    var den = parseFloat(o.density) || 0.850;
+    var qtyKG = isKG ? parseFloat(o.qty_kg || (o.qty * den)) : parseFloat(o.qty * den);
+    var dealRate = parseFloat(o.deal_rate) || 0;
+    var dealAmt = parseFloat(o.deal_amt) || (qtyKG * dealRate) || 0;
+    var taxRate = parseFloat(o.tax_rate) || 0;
+    var taxPct = parseFloat(o.tax_pct) || 18;
+    
+    var taxableAmt = parseFloat(o.taxable_amt) || (qtyKG * taxRate) || 0;
+    var taxAmt = (taxableAmt * taxPct) / 100;
+    var totalAmt = taxableAmt + taxAmt;
+    var yChgs = dealAmt - totalAmt;
+
+    var html = `
+        <html>
+        <head>
+            <title>${docTitle}_${o.id}</title>
+            <style>
+                @media print { @page { size: portrait; margin: 10mm; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+                body { font-family: Arial, sans-serif; color: #000; font-size: 10px; line-height: 1.4; margin: 0; padding: 0; }
+                .doc-container { border: 1.5px solid #000; width: 100%; max-width: 800px; margin: 0 auto; }
+                .header-title { text-align: center; font-weight: bold; font-size: 14px; border-bottom: 1.5px solid #000; padding: 8px 0; letter-spacing: 1px; }
+                .flex-row { display: flex; border-bottom: 1.5px solid #000; }
+                .col-left { width: 50%; border-right: 1.5px solid #000; padding: 10px; box-sizing: border-box; }
+                .col-right { width: 50%; padding: 10px; box-sizing: border-box; }
+                .item-table { width: 100%; border-collapse: collapse; text-align: center; }
+                .item-table th, .item-table td { border-bottom: 1px solid #000; border-right: 1px solid #000; padding: 6px; }
+                .item-table th { background: #f0f0f0; }
+                .item-table th:last-child, .item-table td:last-child { border-right: none; }
+                .item-table tbody tr:last-child td { border-bottom: none; }
+                .totals-box { text-align: right; padding: 10px; border-bottom: 1.5px solid #000; }
+                .footer { display: flex; justify-content: space-between; padding: 15px 10px 40px 10px; }
+            </style>
+        </head>
+        <body>
+            <div class="doc-container">
+                <div class="header-title">${docTitle}</div>
+                
+                <div class="flex-row">
+                    <div class="col-left">
+                        <div style="font-size:12px; font-weight:bold; margin-bottom:4px;">${escH(myName)}</div>
+                        <div style="font-size:9px;">${escH(myAddr)}</div>
+                        <div style="font-size:9px; margin-top:4px;"><b>GSTIN:</b> ${escH(myGstin)}</div>
+                        <div style="font-size:9px;"><b>State:</b> ${escH(myState)} (Code: ${escH(myStateCode)})</div>
+                        <div style="font-size:9px;"><b>Email:</b> ${escH(myEmail)} | <b>Ph:</b> ${escH(myPhone)}</div>
+                    </div>
+                    <div class="col-right">
+                        <table style="width:100%; text-align:left; font-size:10px; border-collapse:collapse;">
+                            <tr><td style="padding:2px 0;"><b>Order No:</b></td><td>${o.id}</td></tr>
+                            <tr><td style="padding:2px 0;"><b>Order Date:</b></td><td>${formattedDate}</td></tr>
+                            <tr><td style="padding:2px 0;"><b>Due Date:</b></td><td>${o.due || '-'}</td></tr>
+                            <tr><td style="padding:2px 0;"><b>Priority:</b></td><td>${o.priority || 'Normal'}</td></tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="flex-row">
+                    <div class="col-left" style="width:100%; border-right:none;">
+                        <div style="font-weight:bold; text-transform:uppercase; margin-bottom:4px; font-size:10px;">${partyTitle}</div>
+                        <div style="font-size:12px; font-weight:bold;">${escH(o.customer)}</div>
+                    </div>
+                </div>
+
+                <div style="border-bottom: 1.5px solid #000; min-height: 250px;">
+                    <table class="item-table">
+                        <thead>
+                            <tr>
+                                <th style="width:5%;">Sr</th>
+                                <th style="text-align:left; width:35%;">Description of Goods</th>
+                                <th style="width:15%;">Quantity</th>
+                                <th style="width:15%;">Rate/KG</th>
+                                <th style="width:30%; text-align:right;">Amount (INR)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td style="text-align:left;"><b>${escH(o.product)}</b><br><small>HSN: 27101971</small></td>
+                                <td>${fmtN(qtyKG.toFixed(2))} KG</td>
+                                <td>${dealRate.toFixed(2)}</td>
+                                <td style="text-align:right;">${fmt(dealAmt)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="totals-box">
+                    <table style="width:100%; border-collapse:collapse;">
+                        <tr><td style="text-align:right; width:70%; padding:2px 10px;"><b>Total Taxable Amount:</b></td><td style="text-align:right;">₹ ${fmt(taxableAmt)}</td></tr>
+                        <tr><td style="text-align:right; width:70%; padding:2px 10px;"><b>GST (${taxPct}%):</b></td><td style="text-align:right;">₹ ${fmt(taxAmt)}</td></tr>
+                        <tr><td style="text-align:right; width:70%; padding:2px 10px;"><b>Total Value (inc GST):</b></td><td style="text-align:right;">₹ ${fmt(totalAmt)}</td></tr>
+                        <tr><td style="text-align:right; width:70%; padding:2px 10px;"><b>Yard Charges / Difference:</b></td><td style="text-align:right;">₹ ${fmt(yChgs)}</td></tr>
+                        <tr><td style="text-align:right; width:70%; padding:4px 10px; font-size:12px;"><b>Deal Amount:</b></td><td style="text-align:right; font-size:12px; font-weight:bold;">₹ ${fmt(dealAmt)}</td></tr>
+                    </table>
+                </div>
+
+                <div class="footer">
+                    <div style="width:50%; font-size:9px; color:#555;">
+                        <b>Terms & Conditions:</b><br>
+                        1. Payment to be made on delivery.<br>
+                        2. Subject to Navi Mumbai jurisdiction.<br>
+                        3. Quality as per standard specifications.
+                    </div>
+                    <div style="width:50%; text-align:right; display:flex; flex-direction:column; justify-content:space-between;">
+                        <div style="font-size:9px;">For <b>${escH(myName)}</b></div>
+                        <div style="font-weight:bold; font-size:10px; margin-top:50px;">Authorized Signatory</div>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align:center; margin-top:10px; font-size:9px; color:#888;">This is a computer generated document</div>
+        </body>
+        </html>
+    `;
+
+    openPrintWindow(html, 'Order_' + o.id);
+}
+
 // Window Bridge
 (function (w) {
     const exports = {
         renderOrdersTable, editOrder, addOrder, updateOrderStatus, populateOrderParties, deleteOrder,
         toggleChallanFields, renderChallansTable, addChallan, deleteChallan, populateChallanLinks, handleChallanLinkChange,
-        calcOrderBreakdown, toggleOrderPricingFields
+        calcOrderBreakdown, toggleOrderPricingFields, printOrder
     };
     for (const key in exports) {
         if (typeof exports[key] === 'function') {
