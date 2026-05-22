@@ -98,6 +98,7 @@ function editOrder(id) {
     document.getElementById('ord-date').value = o.date || today();
     document.getElementById('ord-due').value = o.due || '';
     document.getElementById('ord-priority').value = o.priority || 'Normal';
+    if (document.getElementById('ord-shipto')) document.getElementById('ord-shipto').value = o.shipto || '';
     if (document.getElementById('ord-dest')) document.getElementById('ord-dest').value = o.dest || '';
 
     if (document.getElementById('ord-deal-rate')) document.getElementById('ord-deal-rate').value = o.deal_rate || '';
@@ -146,6 +147,7 @@ function addOrder() {
         date: document.getElementById('ord-date').value || today(),
         due: document.getElementById('ord-due').value,
         priority: document.getElementById('ord-priority').value,
+        shipto: document.getElementById('ord-shipto') ? document.getElementById('ord-shipto').value : '',
         dest: document.getElementById('ord-dest') ? document.getElementById('ord-dest').value : '',
         status: 'Pending',
         terms: 'Immediate',
@@ -183,7 +185,7 @@ function addOrder() {
 
     // Clear form
     ['ord-customer', 'ord-qty', 'ord-kg', 'ord-price', 'ord-price-kg', 'ord-due',
-     'ord-deal-rate', 'ord-tax-rate', 'ord-dest'].forEach(id => {
+     'ord-deal-rate', 'ord-tax-rate', 'ord-shipto', 'ord-dest'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
     });
@@ -441,9 +443,10 @@ function printOrder(orderId) {
     var buyerState = isPurchase ? myState : partyState;
     var buyerStateCode = isPurchase ? myStateCode : partyStateCode;
 
-    var destText = o.dest || (isPurchase ? 'ACCL TERMINAL KANDLA' : '—');
+    var shiptoText = o.shipto || (isPurchase ? 'ACCL TERMINAL' : '—');
+    var destText = o.dest || (isPurchase ? 'KANDLA' : '—');
     var consigneeName = buyerName;
-    var consigneeAddr = destText === '—' ? buyerAddr : destText;
+    var consigneeAddr = (shiptoText === '—' && destText === '—') ? buyerAddr : (shiptoText !== '—' ? shiptoText : destText);
     var consigneeGstin = buyerGstin;
     var consigneeState = buyerState;
     var consigneeStateCode = buyerStateCode;
