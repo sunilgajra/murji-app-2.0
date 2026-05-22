@@ -3829,6 +3829,14 @@ function printTradeInvoice(tradeId) {
     openPrintWindow(html, `Tax_Invoice_${t.id}`);
 }
 
+// Direct window assignments — ensures SES lockdown from Supabase SDK cannot block these
+window.printTradeReceipt = printTradeReceipt;
+window.printTradeInvoice = printTradeInvoice;
+window.generateLandedCostReport = generateLandedCostReport;
+window.editTrade = editTrade;
+window.addTrade = addTrade;
+window.resetTradeForm = resetTradeForm;
+
 // Window Bridge
 (function (w) {
     const exports = {
