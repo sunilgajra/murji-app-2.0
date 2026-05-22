@@ -984,6 +984,9 @@ function editTrade(id) {
     if (document.getElementById('tr-delivery-dest')) {
         document.getElementById('tr-delivery-dest').value = t.delivery_dest || '';
     }
+    if (document.getElementById('tr-bank-select')) {
+        document.getElementById('tr-bank-select').value = t.bank_index || '1';
+    }
     toggleDeliveryDest();
     if (t.mode === 'import') {
         document.getElementById('tr-is-hs').checked = !!t.is_hs;
@@ -1148,7 +1151,8 @@ function addTrade() {
         y_charges: (getTradeQtyKG() * (parseFloat(document.getElementById('tr-deal-rate') ? document.getElementById('tr-deal-rate').value : 0) || 0)) -
                    (getTradeQtyKG() * (parseFloat(document.getElementById('tr-tax-rate') ? document.getElementById('tr-tax-rate').value : 0) || 0) *
                    (1 + (parseFloat(document.getElementById('tr-tax-pct') ? document.getElementById('tr-tax-pct').value : 18) || 18) / 100)),
-        ship_to: document.getElementById('tr-ship-to-select') ? document.getElementById('tr-ship-to-select').value : ''
+        ship_to: document.getElementById('tr-ship-to-select') ? document.getElementById('tr-ship-to-select').value : '',
+        bank_index: document.getElementById('tr-bank-select') ? document.getElementById('tr-bank-select').value : '1'
     };
 
     if (type === 'Sell' && mode === 'hs_sale') trade.link_purchase_id = document.getElementById('tr-link-purchase').value;
@@ -1246,6 +1250,7 @@ function resetTradeForm() {
         var el = document.getElementById(id); if (el) el.value = '';
     });
     if (document.getElementById('tr-tax-pct')) document.getElementById('tr-tax-pct').value = '18';
+    if (document.getElementById('tr-bank-select')) document.getElementById('tr-bank-select').value = '1';
     calcTradeBreakdown();
     document.getElementById('tr-party-select').value = '';
     document.getElementById('tr-is-hs').checked = false;
@@ -2727,6 +2732,7 @@ function toggleTradeDetailFields() {
     var srcGrp = document.getElementById('tr-source-loc-group');
     var destGrp = document.getElementById('tr-dest-loc-group');
     var delivModeGrp = document.getElementById('tr-delivery-mode-group');
+    var bankGrp = document.getElementById('tr-bank-group');
 
     // Source (FROM) only visible for Sell-Local and Move
     if (srcGrp) srcGrp.style.display = (type === 'Move' || (type === 'Sell' && mode === 'local')) ? 'block' : 'none';
@@ -2735,6 +2741,9 @@ function toggleTradeDetailFields() {
     // Delivery Mode (Ex-Yard / Door) — only for Sell-Local
     if (delivModeGrp) delivModeGrp.style.display = (type === 'Sell' && mode === 'local') ? 'block' : 'none';
     toggleDeliveryDest();
+
+    // Receiving Bank — only for Sell
+    if (bankGrp) bankGrp.style.display = (type === 'Sell') ? 'block' : 'none';
 
     // Destination (TO / Storage) only visible for Buy and Move — NOT for Sell
     if (destGrp) destGrp.style.display = (type === 'Buy' || type === 'Move') ? 'block' : 'none';
@@ -3814,9 +3823,9 @@ function printTradeInvoice(tradeId) {
                 <div class="flex-row" style="border-bottom: none;">
                     <div class="col-left" style="font-size: 8px; line-height: 1.4;">
                         <div style="font-weight: bold; font-size: 8.5px; margin-bottom: 4px; text-transform: uppercase;">Company's Bank Details</div>
-                        <div>Bank Name: <span style="font-weight: bold;">${co.bankName ? escH(co.bankName) : 'HDFC BANK OD A/C'}</span></div>
-                        <div>A/c No.: <span style="font-weight: bold;">${co.bankAc ? escH(co.bankAc) : '50200115504705'}</span></div>
-                        <div>Branch & IFSC Code: <span style="font-weight: bold;">${(co.bankBranch || co.bankIfsc) ? escH((co.bankBranch||'') + (co.bankBranch && co.bankIfsc ? ' & ' : '') + (co.bankIfsc||'')) : 'VASHI & HDFC0000041'}</span></div>
+                        <div>Bank Name: <span style="font-weight: bold;">${(t.bank_index === '2' ? co.bank2Name : co.bankName) ? escH(t.bank_index === '2' ? co.bank2Name : co.bankName) : 'HDFC BANK OD A/C'}</span></div>
+                        <div>A/c No.: <span style="font-weight: bold;">${(t.bank_index === '2' ? co.bank2Ac : co.bankAc) ? escH(t.bank_index === '2' ? co.bank2Ac : co.bankAc) : '50200115504705'}</span></div>
+                        <div>Branch & IFSC Code: <span style="font-weight: bold;">${((t.bank_index === '2' ? co.bank2Branch : co.bankBranch) || (t.bank_index === '2' ? co.bank2Ifsc : co.bankIfsc)) ? escH(((t.bank_index === '2' ? co.bank2Branch : co.bankBranch)||'') + ((t.bank_index === '2' ? co.bank2Branch : co.bankBranch) && (t.bank_index === '2' ? co.bank2Ifsc : co.bankIfsc) ? ' & ' : '') + ((t.bank_index === '2' ? co.bank2Ifsc : co.bankIfsc)||'')) : 'VASHI & HDFC0000041'}</span></div>
                         <div style="margin-top: 6px; font-style: italic; color: #555; font-size: 7.5px; line-height: 1.2;">
                             Declaration: We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.
                         </div>

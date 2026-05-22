@@ -542,10 +542,15 @@ function saveCompanyDetails() {
     state.company.stateCode  = g('co-state-code');
     state.company.phone      = g('co-phone');
     state.company.email      = g('co-email');
-    state.company.bankName   = g('co-bank-name');
-    state.company.bankAc     = g('co-bank-ac');
-    state.company.bankIfsc   = g('co-bank-ifsc');
-    state.company.bankBranch = g('co-bank-branch');
+    state.company.bankName   = g('co-bank1-name');
+    state.company.bankAc     = g('co-bank1-ac');
+    state.company.bankIfsc   = g('co-bank1-ifsc');
+    state.company.bankBranch = g('co-bank1-branch');
+    
+    state.company.bank2Name   = g('co-bank2-name');
+    state.company.bank2Ac     = g('co-bank2-ac');
+    state.company.bank2Ifsc   = g('co-bank2-ifsc');
+    state.company.bank2Branch = g('co-bank2-branch');
     saveState();
     var ok = document.getElementById('co-save-ok');
     if (ok) { ok.style.display = 'block'; setTimeout(function() { ok.style.display = 'none'; }, 3000); }
@@ -565,10 +570,15 @@ function loadCompanyDetails() {
     s('co-state-code',  co.stateCode);
     s('co-phone',       co.phone);
     s('co-email',       co.email);
-    s('co-bank-name',   co.bankName);
-    s('co-bank-ac',     co.bankAc);
-    s('co-bank-ifsc',   co.bankIfsc);
-    s('co-bank-branch', co.bankBranch);
+    s('co-bank1-name',   co.bankName);
+    s('co-bank1-ac',     co.bankAc);
+    s('co-bank1-ifsc',   co.bankIfsc);
+    s('co-bank1-branch', co.bankBranch);
+
+    s('co-bank2-name',   co.bank2Name);
+    s('co-bank2-ac',     co.bank2Ac);
+    s('co-bank2-ifsc',   co.bank2Ifsc);
+    s('co-bank2-branch', co.bank2Branch);
 }
 
 // Window Bridge
