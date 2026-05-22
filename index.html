@@ -193,7 +193,7 @@
         <select id="tr-ship-to-select"></select>
       </div>
       <div id="tr-deal-group" class="form-group" style="display:none"><label>Sale Deal / Order</label><select id="tr-sale-deal" onchange="loadDealDetails()"></select></div>
-      <div id="tr-bank-group" class="form-group" style="display:none"><label>Receiving Bank (Invoice)</label><select id="tr-bank-select"><option value="1">Bank 1 (Default)</option><option value="2">Bank 2</option></select></div>
+      <div id="tr-bank-group" class="form-group" style="display:none"><label>Receiving Bank (Invoice)</label><select id="tr-bank-select"><option value="1">Bank 1 (Default)</option><option value="2">Bank 2</option><option value="3">Bank 3</option><option value="4">Bank 4</option><option value="5">Bank 5</option></select></div>
       
       <!-- Shared Details -->
       <div class="form-group"><label>Quantity</label>
@@ -861,6 +861,81 @@
                 <div class="form-group">
                     <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">Branch</label>
                     <input type="text" id="co-bank2-branch" placeholder="Navi Mumbai Branch"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+
+                <!-- Bank 3 Details Sub-section -->
+                <div style="grid-column:1/-1; border-top:1px solid var(--border); padding-top:16px; margin-top:4px;">
+                    <p style="color:var(--muted); font-size:11px; text-transform:uppercase; font-weight:600; margin:0 0 14px 0; letter-spacing:0.5px;">Bank 3 Details (Optional)</p>
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">Bank Name</label>
+                    <input type="text" id="co-bank3-name" placeholder="Bank Name"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">Account Number</label>
+                    <input type="text" id="co-bank3-ac" placeholder="Account Number"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">IFSC Code</label>
+                    <input type="text" id="co-bank3-ifsc" placeholder="IFSC Code"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">Branch</label>
+                    <input type="text" id="co-bank3-branch" placeholder="Branch Name"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+
+                <!-- Bank 4 Details Sub-section -->
+                <div style="grid-column:1/-1; border-top:1px solid var(--border); padding-top:16px; margin-top:4px;">
+                    <p style="color:var(--muted); font-size:11px; text-transform:uppercase; font-weight:600; margin:0 0 14px 0; letter-spacing:0.5px;">Bank 4 Details (Optional)</p>
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">Bank Name</label>
+                    <input type="text" id="co-bank4-name" placeholder="Bank Name"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">Account Number</label>
+                    <input type="text" id="co-bank4-ac" placeholder="Account Number"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">IFSC Code</label>
+                    <input type="text" id="co-bank4-ifsc" placeholder="IFSC Code"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">Branch</label>
+                    <input type="text" id="co-bank4-branch" placeholder="Branch Name"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+
+                <!-- Bank 5 Details Sub-section -->
+                <div style="grid-column:1/-1; border-top:1px solid var(--border); padding-top:16px; margin-top:4px;">
+                    <p style="color:var(--muted); font-size:11px; text-transform:uppercase; font-weight:600; margin:0 0 14px 0; letter-spacing:0.5px;">Bank 5 Details (Optional)</p>
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">Bank Name</label>
+                    <input type="text" id="co-bank5-name" placeholder="Bank Name"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">Account Number</label>
+                    <input type="text" id="co-bank5-ac" placeholder="Account Number"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">IFSC Code</label>
+                    <input type="text" id="co-bank5-ifsc" placeholder="IFSC Code"
+                        style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
+                </div>
+                <div class="form-group">
+                    <label style="display:block; margin-bottom:6px; font-weight:600; font-size:12px; text-transform:uppercase; color:var(--muted);">Branch</label>
+                    <input type="text" id="co-bank5-branch" placeholder="Branch Name"
                         style="width:100%; padding:11px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; box-sizing:border-box;">
                 </div>
             </div>

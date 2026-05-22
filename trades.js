@@ -2723,6 +2723,46 @@ function toggleDeliveryDest() {
     if (destGrp) destGrp.style.display = (mode === 'door') ? 'block' : 'none';
 }
 
+function populateBankSelect() {
+    var sel = document.getElementById('tr-bank-select');
+    if (!sel) return;
+    
+    var co = (state && state.company) ? state.company : {};
+    var html = '';
+    
+    var b1 = co.bankName ? (co.bankName + (co.bankAc ? ' - ' + co.bankAc : '')) : 'Bank 1 (Default)';
+    html += '<option value="1">' + escH(b1) + '</option>';
+    
+    if (co.bank2Name || co.bank2Ac) {
+        var b2 = co.bank2Name ? (co.bank2Name + (co.bank2Ac ? ' - ' + co.bank2Ac : '')) : 'Bank 2';
+        html += '<option value="2">' + escH(b2) + '</option>';
+    }
+    
+    if (co.bank3Name || co.bank3Ac) {
+        var b3 = co.bank3Name ? (co.bank3Name + (co.bank3Ac ? ' - ' + co.bank3Ac : '')) : 'Bank 3';
+        html += '<option value="3">' + escH(b3) + '</option>';
+    }
+
+    if (co.bank4Name || co.bank4Ac) {
+        var b4 = co.bank4Name ? (co.bank4Name + (co.bank4Ac ? ' - ' + co.bank4Ac : '')) : 'Bank 4';
+        html += '<option value="4">' + escH(b4) + '</option>';
+    }
+
+    if (co.bank5Name || co.bank5Ac) {
+        var b5 = co.bank5Name ? (co.bank5Name + (co.bank5Ac ? ' - ' + co.bank5Ac : '')) : 'Bank 5';
+        html += '<option value="5">' + escH(b5) + '</option>';
+    }
+
+    var oldVal = sel.value || '1';
+    sel.innerHTML = html;
+    // ensure value still exists in options, else fallback to 1
+    if (Array.from(sel.options).some(function(opt){ return opt.value === oldVal; })) {
+        sel.value = oldVal;
+    } else {
+        sel.value = '1';
+    }
+}
+
 function toggleTradeDetailFields() {
     var type = document.getElementById('tr-type').value;
     var mode = document.getElementById('tr-mode').value;
@@ -2743,7 +2783,10 @@ function toggleTradeDetailFields() {
     toggleDeliveryDest();
 
     // Receiving Bank — only for Sell
-    if (bankGrp) bankGrp.style.display = (type === 'Sell') ? 'block' : 'none';
+    if (bankGrp) {
+        bankGrp.style.display = (type === 'Sell') ? 'block' : 'none';
+        if (type === 'Sell') populateBankSelect();
+    }
 
     // Destination (TO / Storage) only visible for Buy and Move — NOT for Sell
     if (destGrp) destGrp.style.display = (type === 'Buy' || type === 'Move') ? 'block' : 'none';
@@ -3504,6 +3547,19 @@ function printTradeInvoice(tradeId) {
     var invoiceWords = numToWords(totalInvoiceVal);
     var taxWords = numToWords(taxAmt);
 
+    // Resolve which bank details to show on the invoice based on t.bank_index
+    var actBankName = co.bankName || 'HDFC BANK OD A/C';
+    var actBankAc = co.bankAc || '50200115504705';
+    var actBankBranch = co.bankBranch || 'VASHI';
+    var actBankIfsc = co.bankIfsc || 'HDFC0000041';
+    
+    if (t.bank_index === '2') { actBankName = co.bank2Name || actBankName; actBankAc = co.bank2Ac || actBankAc; actBankBranch = co.bank2Branch || actBankBranch; actBankIfsc = co.bank2Ifsc || actBankIfsc; }
+    if (t.bank_index === '3') { actBankName = co.bank3Name || actBankName; actBankAc = co.bank3Ac || actBankAc; actBankBranch = co.bank3Branch || actBankBranch; actBankIfsc = co.bank3Ifsc || actBankIfsc; }
+    if (t.bank_index === '4') { actBankName = co.bank4Name || actBankName; actBankAc = co.bank4Ac || actBankAc; actBankBranch = co.bank4Branch || actBankBranch; actBankIfsc = co.bank4Ifsc || actBankIfsc; }
+    if (t.bank_index === '5') { actBankName = co.bank5Name || actBankName; actBankAc = co.bank5Ac || actBankAc; actBankBranch = co.bank5Branch || actBankBranch; actBankIfsc = co.bank5Ifsc || actBankIfsc; }
+
+    var actBankBranchIfscCombo = (actBankBranch && actBankIfsc) ? (actBankBranch + ' & ' + actBankIfsc) : (actBankBranch || actBankIfsc);
+
     var html = `
         <html>
         <head>
@@ -3823,9 +3879,9 @@ function printTradeInvoice(tradeId) {
                 <div class="flex-row" style="border-bottom: none;">
                     <div class="col-left" style="font-size: 8px; line-height: 1.4;">
                         <div style="font-weight: bold; font-size: 8.5px; margin-bottom: 4px; text-transform: uppercase;">Company's Bank Details</div>
-                        <div>Bank Name: <span style="font-weight: bold;">${(t.bank_index === '2' ? co.bank2Name : co.bankName) ? escH(t.bank_index === '2' ? co.bank2Name : co.bankName) : 'HDFC BANK OD A/C'}</span></div>
-                        <div>A/c No.: <span style="font-weight: bold;">${(t.bank_index === '2' ? co.bank2Ac : co.bankAc) ? escH(t.bank_index === '2' ? co.bank2Ac : co.bankAc) : '50200115504705'}</span></div>
-                        <div>Branch & IFSC Code: <span style="font-weight: bold;">${((t.bank_index === '2' ? co.bank2Branch : co.bankBranch) || (t.bank_index === '2' ? co.bank2Ifsc : co.bankIfsc)) ? escH(((t.bank_index === '2' ? co.bank2Branch : co.bankBranch)||'') + ((t.bank_index === '2' ? co.bank2Branch : co.bankBranch) && (t.bank_index === '2' ? co.bank2Ifsc : co.bankIfsc) ? ' & ' : '') + ((t.bank_index === '2' ? co.bank2Ifsc : co.bankIfsc)||'')) : 'VASHI & HDFC0000041'}</span></div>
+                        <div>Bank Name: <span style="font-weight: bold;">${escH(actBankName)}</span></div>
+                        <div>A/c No.: <span style="font-weight: bold;">${escH(actBankAc)}</span></div>
+                        <div>Branch & IFSC Code: <span style="font-weight: bold;">${escH(actBankBranchIfscCombo)}</span></div>
                         <div style="margin-top: 6px; font-style: italic; color: #555; font-size: 7.5px; line-height: 1.2;">
                             Declaration: We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.
                         </div>

@@ -551,6 +551,21 @@ function saveCompanyDetails() {
     state.company.bank2Ac     = g('co-bank2-ac');
     state.company.bank2Ifsc   = g('co-bank2-ifsc');
     state.company.bank2Branch = g('co-bank2-branch');
+    
+    state.company.bank3Name   = g('co-bank3-name');
+    state.company.bank3Ac     = g('co-bank3-ac');
+    state.company.bank3Ifsc   = g('co-bank3-ifsc');
+    state.company.bank3Branch = g('co-bank3-branch');
+    
+    state.company.bank4Name   = g('co-bank4-name');
+    state.company.bank4Ac     = g('co-bank4-ac');
+    state.company.bank4Ifsc   = g('co-bank4-ifsc');
+    state.company.bank4Branch = g('co-bank4-branch');
+    
+    state.company.bank5Name   = g('co-bank5-name');
+    state.company.bank5Ac     = g('co-bank5-ac');
+    state.company.bank5Ifsc   = g('co-bank5-ifsc');
+    state.company.bank5Branch = g('co-bank5-branch');
     saveState();
     var ok = document.getElementById('co-save-ok');
     if (ok) { ok.style.display = 'block'; setTimeout(function() { ok.style.display = 'none'; }, 3000); }
@@ -579,6 +594,21 @@ function loadCompanyDetails() {
     s('co-bank2-ac',     co.bank2Ac);
     s('co-bank2-ifsc',   co.bank2Ifsc);
     s('co-bank2-branch', co.bank2Branch);
+
+    s('co-bank3-name',   co.bank3Name);
+    s('co-bank3-ac',     co.bank3Ac);
+    s('co-bank3-ifsc',   co.bank3Ifsc);
+    s('co-bank3-branch', co.bank3Branch);
+
+    s('co-bank4-name',   co.bank4Name);
+    s('co-bank4-ac',     co.bank4Ac);
+    s('co-bank4-ifsc',   co.bank4Ifsc);
+    s('co-bank4-branch', co.bank4Branch);
+
+    s('co-bank5-name',   co.bank5Name);
+    s('co-bank5-ac',     co.bank5Ac);
+    s('co-bank5-ifsc',   co.bank5Ifsc);
+    s('co-bank5-branch', co.bank5Branch);
 }
 
 // Window Bridge
