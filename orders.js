@@ -99,6 +99,7 @@ function editOrder(id) {
     document.getElementById('ord-due').value = o.due || '';
     document.getElementById('ord-priority').value = o.priority || 'Normal';
     if (document.getElementById('ord-shipto')) document.getElementById('ord-shipto').value = o.shipto || '';
+    if (document.getElementById('ord-shipto-state')) document.getElementById('ord-shipto-state').value = o.shiptoState || '';
     if (document.getElementById('ord-dest')) document.getElementById('ord-dest').value = o.dest || '';
 
     if (document.getElementById('ord-deal-rate')) document.getElementById('ord-deal-rate').value = o.deal_rate || '';
@@ -148,6 +149,7 @@ function addOrder() {
         due: document.getElementById('ord-due').value,
         priority: document.getElementById('ord-priority').value,
         shipto: document.getElementById('ord-shipto') ? document.getElementById('ord-shipto').value : '',
+        shiptoState: document.getElementById('ord-shipto-state') ? document.getElementById('ord-shipto-state').value : '',
         dest: document.getElementById('ord-dest') ? document.getElementById('ord-dest').value : '',
         status: 'Pending',
         terms: 'Immediate',
@@ -185,7 +187,7 @@ function addOrder() {
 
     // Clear form
     ['ord-customer', 'ord-qty', 'ord-kg', 'ord-price', 'ord-price-kg', 'ord-due',
-     'ord-deal-rate', 'ord-tax-rate', 'ord-shipto', 'ord-dest'].forEach(id => {
+     'ord-deal-rate', 'ord-tax-rate', 'ord-shipto', 'ord-shipto-state', 'ord-dest'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
     });
@@ -450,6 +452,20 @@ function printOrder(orderId) {
     var consigneeGstin = buyerGstin;
     var consigneeState = buyerState;
     var consigneeStateCode = buyerStateCode;
+    
+    if (o.shiptoState && o.shiptoState.includes('|')) {
+        var pS = o.shiptoState.split('|');
+        consigneeStateCode = pS[0];
+        consigneeState = pS[1];
+    }
+
+    function extractPan(gstin) {
+        if (!gstin || gstin.length < 15) return 'N/A';
+        return gstin.substring(2, 12);
+    }
+    
+    var buyerPan = extractPan(buyerGstin);
+    var consigneePan = extractPan(consigneeGstin);
 
     var isLocalTax = (sellerStateCode === buyerStateCode);
 
@@ -538,6 +554,7 @@ function printOrder(orderId) {
                         <div class="company-name">${escH(buyerName)}</div>
                         <div style="font-size: 8.5px;">${escH(buyerAddr)}</div>
                         <div style="margin-top: 6px; font-weight: bold; font-size: 8.5px;">GSTIN/UIN: ${buyerGstin}</div>
+                        <div style="font-size: 8.5px;">PAN/IT No.: ${buyerPan}</div>
                         <div style="font-size: 8.5px;">State Name: ${buyerState}, Code: ${buyerStateCode}</div>
                     </div>
                     <div class="col-right">
@@ -588,6 +605,7 @@ function printOrder(orderId) {
                         <div class="company-name">${escH(consigneeName)}</div>
                         <div style="font-size: 8.5px;">${escH(consigneeAddr)}</div>
                         <div style="margin-top: 6px; font-weight: bold; font-size: 8.5px;">GSTIN/UIN: ${consigneeGstin}</div>
+                        <div style="font-size: 8.5px;">PAN/IT No.: ${consigneePan}</div>
                         <div style="font-size: 8.5px;">State Name: ${consigneeState}, Code: ${consigneeStateCode}</div>
                     </div>
                     <div class="col-left" style="border-right: none;">
@@ -595,6 +613,7 @@ function printOrder(orderId) {
                         <div class="company-name">${escH(sellerName)}</div>
                         <div style="font-size: 8.5px;">${escH(sellerAddr)}</div>
                         <div style="margin-top: 6px; font-weight: bold; font-size: 8.5px;">GSTIN/UIN: ${sellerGstin}</div>
+                        <div style="font-size: 8.5px;">PAN/IT No.: ${extractPan(sellerGstin)}</div>
                         <div style="font-size: 8.5px;">State Name: ${sellerState}, Code: ${sellerStateCode}</div>
                     </div>
                 </div>
