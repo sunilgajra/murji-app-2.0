@@ -98,6 +98,7 @@ function editOrder(id) {
     document.getElementById('ord-date').value = o.date || today();
     document.getElementById('ord-due').value = o.due || '';
     document.getElementById('ord-priority').value = o.priority || 'Normal';
+    if (document.getElementById('ord-dest')) document.getElementById('ord-dest').value = o.dest || '';
 
     if (document.getElementById('ord-deal-rate')) document.getElementById('ord-deal-rate').value = o.deal_rate || '';
     if (document.getElementById('ord-tax-rate')) document.getElementById('ord-tax-rate').value = o.tax_rate || '';
@@ -145,6 +146,7 @@ function addOrder() {
         date: document.getElementById('ord-date').value || today(),
         due: document.getElementById('ord-due').value,
         priority: document.getElementById('ord-priority').value,
+        dest: document.getElementById('ord-dest') ? document.getElementById('ord-dest').value : '',
         status: 'Pending',
         terms: 'Immediate',
         deal_rate: parseFloat(document.getElementById('ord-deal-rate') ? document.getElementById('ord-deal-rate').value : 0) || 0,
@@ -181,7 +183,7 @@ function addOrder() {
 
     // Clear form
     ['ord-customer', 'ord-qty', 'ord-kg', 'ord-price', 'ord-price-kg', 'ord-due',
-     'ord-deal-rate', 'ord-tax-rate'].forEach(id => {
+     'ord-deal-rate', 'ord-tax-rate', 'ord-dest'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
     });
@@ -439,8 +441,9 @@ function printOrder(orderId) {
     var buyerState = isPurchase ? myState : partyState;
     var buyerStateCode = isPurchase ? myStateCode : partyStateCode;
 
+    var destText = o.dest || (isPurchase ? 'ACCL TERMINAL KANDLA' : '—');
     var consigneeName = buyerName;
-    var consigneeAddr = isPurchase ? 'ACCL TERMINAL KANDLA' : buyerAddr;
+    var consigneeAddr = destText === '—' ? buyerAddr : destText;
     var consigneeGstin = buyerGstin;
     var consigneeState = buyerState;
     var consigneeStateCode = buyerStateCode;
@@ -563,7 +566,7 @@ function printOrder(orderId) {
                                 </td>
                                 <td>
                                     <div style="font-size: 7px; color: #555;">Destination</div>
-                                    <div style="font-weight: bold; margin-top: 1px;">${isPurchase ? 'KANDLA' : '—'}</div>
+                                    <div style="font-weight: bold; margin-top: 1px;">${escH(destText)}</div>
                                 </td>
                             </tr>
                             <tr>
