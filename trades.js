@@ -2382,6 +2382,11 @@ function renderHssPreviews() {
     const invNo = document.getElementById('hss-inv-no') ? document.getElementById('hss-inv-no').value : 'HSS-' + Date.now().toString().substr(-4);
     const pIec = document.getElementById('hss-p-iec') ? document.getElementById('hss-p-iec').value : '';
 
+    const co = (state && state.company) ? state.company : {};
+    const myName = co.name || 'MURJI RAVJI AND COMPANY';
+    const myAddr = co.addr || 'Shop No. 410, Plot No. DHH, Sector 12, Prime Mall, Kutch, Gandhidham, Gujarat 370201';
+    const myGstin = co.gstin || '27ABRFM5531F1ZJ';
+
     const cifValFor = qty * rate;
     const cifValInr = cifValFor * ex;
     const profitAmt = (cifValInr * profitPct) / 100;
@@ -2394,7 +2399,7 @@ function renderHssPreviews() {
         <div class="hss-print-page" id="hss-p1">
             <h1>HIGH SEAS SALE AGREEMENT</h1>
             <table class="no-border">
-                <tr><td>1. NAME & ADDRESS OF IMPORTER</td><td>: MURJI RAVJI AND COMPANY</td></tr>
+                <tr><td>1. NAME & ADDRESS OF IMPORTER</td><td>: ${escH(myName)}</td></tr>
                 <tr><td>2. IMPORT EXPORT CODE NUMBER</td><td>: ABRFM5531E</td></tr>
                 <tr><td>3. NAME & ADDRESS OF PURCHASER</td><td>: ${escH(buyerObj.name)}</td></tr>
                 <tr><td>4. IMPORT EXPORT CODE NUMBER</td><td>: ${escH(pIec)}</td></tr>
@@ -2410,16 +2415,16 @@ function renderHssPreviews() {
             <p style="margin-top:20px; font-size:11px;">13. PAYMENT: Payment should be made to the seller as per high seas sale debit note...</p>
             <p style="font-size:11px;">14. DELIVERY: All the right and the title of the goods will be transferred from sellers to the buyer...</p>
             <div class="signature-row">
-                <div>For, MURJI RAVJI AND COMPANY<br><br><br>Authorized Signatory</div>
+                <div>For, ${escH(myName)}<br><br><br>Authorized Signatory</div>
                 <div>For, ${escH(buyerObj.name)}<br><br><br>Authorized Signatory</div>
             </div>
         </div>
 
         <div class="hss-print-page" id="hss-p2">
             <div class="letterhead">
-                <h3>MURJI RAVJI AND COMPANY</h3>
-                <p>Shop No. 410, Plot No. DHH, Sector 12, Prime Mall, Kutch, Gandhidham, Gujarat 370201</p>
-                <p>GSTIN: 27ABRFM5531F1ZJ | IEC: ABRFM5531E</p>
+                <h3>${escH(myName)}</h3>
+                <p>${escH(myAddr)}</p>
+                <p>GSTIN: ${escH(myGstin)} | IEC: ABRFM5531E</p>
             </div>
             <h2 style="text-decoration:none;">HIGH SEAS INVOICE</h2>
             <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:12px;">
@@ -2437,13 +2442,13 @@ function renderHssPreviews() {
             <p style="font-size:11px; margin-top:10px;">Amount in words: INR ${saleConsideration.toFixed(0)} Only</p>
             <div class="signature-row" style="margin-top:40px;">
                 <div style="border:1px solid #ccc; padding:10px; width:200px; height:80px; font-size:10px;">Receiver's Signature</div>
-                <div style="text-align:right;">For, MURJI RAVJI AND COMPANY<br><br><br>Authorized Signatory</div>
+                <div style="text-align:right;">For, ${escH(myName)}<br><br><br>Authorized Signatory</div>
             </div>
         </div>
 
         <div class="hss-print-page" id="hss-p3">
             <div class="letterhead">
-                <h3>MURJI RAVJI AND COMPANY</h3>
+                <h3>${escH(myName)}</h3>
                 <p>Oil Trading & Logistics | Gandhidham, India</p>
             </div>
             <div style="text-align:right; margin-bottom:20px;">DATE: ${today()}</div>
@@ -2454,7 +2459,7 @@ function renderHssPreviews() {
             <p>The subject consignment is covered under Bill of Lading No: ${escH(blNo)}</p>
             <p>Kindly do the need full and oblige. Thanking you.</p>
             <div class="signature-row" style="margin-top:80px;">
-                <div>Yours faithfully,<br>For, MURJI RAVJI AND COMPANY<br><br><br>(Authorized Signatory)</div>
+                <div>Yours faithfully,<br>For, ${escH(myName)}<br><br><br>(Authorized Signatory)</div>
             </div>
         </div>
     `;
@@ -3152,12 +3157,15 @@ function generateLandedCostReport(tradeId) {
     const expRateKG = totalKG > 0 ? ((expGrandTotal + bankCharges + tankCost) / totalKG) : 0;
     const finalLandedKG = basicRateKG + expRateKG;
 
+    const co = (state && state.company) ? state.company : {};
+    const myName = co.name || 'MURJI RAVJI & COMPANY';
+
     const html = `
         <div style="font-family: 'Segoe UI', Arial, sans-serif; color: #333; padding: 10px;">
             <!-- Header -->
             <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #14b8a6; padding-bottom: 10px; margin-bottom: 20px;">
                 <div>
-                    <h1 style="margin: 0; color: #14b8a6; font-size: 24px;">MURJI RAVJI & COMPANY</h1>
+                    <h1 style="margin: 0; color: #14b8a6; font-size: 24px;">${escH(myName)}</h1>
                     <p style="margin: 2px 0; font-size: 12px; color: #666;">IMPORT SETTLEMENT & LANDED COST STATEMENT</p>
                 </div>
                 <div style="text-align: right;">

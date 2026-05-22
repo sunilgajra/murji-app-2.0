@@ -220,10 +220,11 @@ function downloadChallanPDF(id) {
     if (!c) return toast('Challan not found', true);
 
     var typeLabel = c.type === 'in' ? 'INWARD DELIVERY CHALLAN' : 'OUTWARD DELIVERY CHALLAN';
+    var myName = (state && state.company && state.company.name) ? state.company.name : 'MURJI RAVJI & CO.';
 
     var html = '' +
         '<div class="print-header">' +
-        '<h1>MURJI RAVJI & CO.</h1>' +
+        '<h1>' + escH(myName) + '</h1>' +
         '<p>OIL TRADING & LOGISTICS</p>' +
         '</div>' +
         '<div class="print-title">' + escH(typeLabel) + '</div>' +
@@ -250,7 +251,7 @@ function downloadChallanPDF(id) {
         '<div class="sig-block"><div class="sig-line">Authorized Signatory</div></div>' +
         '<div class="sig-block"><div class="sig-line">Receiver Signature</div></div>' +
         '</div>' +
-        '<div class="print-note">This is a computer-generated document from Murji Ravji & Co. \u2014 ' + new Date().toLocaleString('en-IN') + '</div>';
+        '<div class="print-note">This is a computer-generated document from ' + escH(myName) + ' \u2014 ' + new Date().toLocaleString('en-IN') + '</div>';
 
     openPrintWindow(html, c.id + '_' + c.product);
 }
@@ -316,7 +317,8 @@ function shareWhatsApp(id) {
         if (state.challans[i].id === id) { c = state.challans[i]; break; }
     }
     if (!c) return toast('Challan not found', true);
-    var text = '*MURJI RAVJI & CO.*\nChallan: ' + c.id + '\nDate: ' + c.date +
+    var myName = (state && state.company && state.company.name) ? state.company.name : 'MURJI RAVJI & CO.';
+    var text = '*' + myName + '*\nChallan: ' + c.id + '\nDate: ' + c.date +
         '\nProduct: ' + c.product + '\nVol: ' + fmtN(c.vol) + ' L\nWeight: ' + fmtKG(c.weight) + ' KG' +
         '\nFrom: ' + (c.from || '-') + '\nTo: ' + (c.to || '-') + '\nVehicle: ' + c.vehicle;
     window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(text), '_blank');
