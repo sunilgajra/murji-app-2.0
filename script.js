@@ -102,14 +102,9 @@ function populateSelects() {
         el.innerHTML = html;
     });
 
-    // Populate Sale Deal Dropdown
-    var dealSel = document.getElementById('tr-sale-deal');
-    if (dealSel) {
-        var activeOrders = state.orders.filter(function (o) { return o.status !== 'Delivered'; });
-        dealSel.innerHTML = '<option value="">-- Select Order / Deal --</option>' +
-            activeOrders.map(function (o) {
-                return '<option value="' + o.id + '">' + escH(o.id + ' | ' + o.customer + ' | ' + o.product) + '</option>';
-            }).join('');
+    // Deal Dropdown is populated dynamically via toggleTradeDetailFields
+    if (typeof toggleTradeDetailFields === 'function') {
+        toggleTradeDetailFields();
     }
 
     populateChallanLinks();

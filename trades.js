@@ -2820,7 +2820,6 @@ function toggleTradeDetailFields() {
         locs.forEach(function (el) { el.style.display = (mode === 'local') ? 'grid' : 'none'; });
         document.getElementById('tr-payments-section').style.display = 'none';
         document.getElementById('tr-buyer-payments-section').style.display = (mode === 'local') ? 'block' : 'none';
-        document.getElementById('tr-deal-group').style.display = 'flex';
         if (mode === 'hs_sale') {
             if (linkGrp) linkGrp.style.display = 'flex';
             populatePurchaseLinks();
@@ -2828,6 +2827,42 @@ function toggleTradeDetailFields() {
             if (linkGrp) linkGrp.style.display = 'none';
         }
     }
+    
+    var dealGrp = document.getElementById('tr-deal-group');
+    if (dealGrp) {
+        if (type === 'Move') {
+            dealGrp.style.display = 'none';
+        } else {
+            dealGrp.style.display = 'flex';
+            var dealLbl = document.getElementById('tr-deal-label');
+            var dealSel = document.getElementById('tr-sale-deal');
+            
+            if (type === 'Buy') {
+                if (dealLbl) dealLbl.textContent = 'Purchase Order';
+                if (dealSel) {
+                    var activePOs = state.orders.filter(function (o) { return o.status !== 'Delivered' && o.type === 'PURCHASE'; });
+                    var oldVal = dealSel.value;
+                    dealSel.innerHTML = '<option value="">-- Select Purchase Order --</option>' +
+                        activePOs.map(function (o) {
+                            return '<option value="' + o.id + '">' + escH(o.id + ' | ' + o.customer + ' | ' + o.product) + '</option>';
+                        }).join('');
+                    if (oldVal) dealSel.value = oldVal;
+                }
+            } else {
+                if (dealLbl) dealLbl.textContent = 'Sale Order';
+                if (dealSel) {
+                    var activeSOs = state.orders.filter(function (o) { return o.status !== 'Delivered' && (!o.type || o.type === 'SALE'); });
+                    var oldVal = dealSel.value;
+                    dealSel.innerHTML = '<option value="">-- Select Sale Order --</option>' +
+                        activeSOs.map(function (o) {
+                            return '<option value="' + o.id + '">' + escH(o.id + ' | ' + o.customer + ' | ' + o.product) + '</option>';
+                        }).join('');
+                    if (oldVal) dealSel.value = oldVal;
+                }
+            }
+        }
+    }
+
     updatePaymentSummary();
 }
 
