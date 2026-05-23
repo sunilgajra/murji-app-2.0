@@ -2183,7 +2183,8 @@ function loadDealDetails() {
     const isKG = order.unit === 'KG';
     if (unitEl) unitEl.value = isKG ? 'KG' : 'LITRE';
 
-    document.getElementById('tr-vol').value = isKG ? (order.qty_kg || (order.qty * (order.density || 0.850))) : order.qty;
+    // document.getElementById('tr-vol').value = isKG ? (order.qty_kg || (order.qty * (order.density || 0.850))) : order.qty;
+    document.getElementById('tr-vol').value = ''; // Clear to force user to enter actual weight
 
     const rateEl = document.getElementById('tr-price-local');
     if (rateEl) {
@@ -2213,7 +2214,7 @@ function loadDealDetails() {
     calcTradeTotals();
     updateBuyerPaymentSummary();
 
-    toast('Loaded Order: ' + id + ' (' + (isKG ? 'KG' : 'Litre') + ' basis)');
+    toast('Loaded Order: ' + id + '. PLEASE ENTER ACTUAL WEIGHT.');
 }
 
 function populateSourceLocations() {
